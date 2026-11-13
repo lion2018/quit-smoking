@@ -23,6 +23,65 @@
     └── ui-mockup.html
 ```
 
+## 挂到现有项目子目录（无需新 Deploy Key）
+
+如果服务器上已经有 `shangcheng` 项目的站点目录，可以直接把戒烟静态文件放进它的子目录，不需要为 `quit-smoking` 单独配 GitHub 密钥。
+
+### 方式 1：上传 zip 解压（最简单）
+
+本地：
+
+```powershell
+scp "E:\开发\001\deploy\quit-smoking.zip" root@<服务器IP>:/tmp/
+```
+
+服务器：
+
+```bash
+# 假设 shangcheng 的站点根目录是 /var/www/shangcheng
+cd /var/www/shangcheng
+sudo mkdir -p quit-smoking
+sudo unzip -o /tmp/quit-smoking.zip -d quit-smoking
+sudo chown -R www-data:www-data quit-smoking
+sudo chmod -R 755 quit-smoking
+```
+
+访问地址取决于 shangcheng 挂在哪：
+
+- shangcheng 在根路径 `/`：`http://<IP>/quit-smoking/`
+- shangcheng 在 `/shangcheng/`：`http://<IP>/shangcheng/quit-smoking/`
+
+### 方式 2：软链接（方便更新）
+
+```bash
+# 假设 quit-smoking 源码在 /var/www/quit-smoking-src
+sudo ln -s /var/www/quit-smoking-src/site/quit-smoking /var/www/shangcheng/quit-smoking
+```
+
+要求：
+
+- Nginx 没有开启 `disable_symlinks on`（默认是 off）。
+- 符号链接目标对 Nginx 运行用户可读。
+- 更新时只需在源码目录 `git pull`，软链接自动生效。
+
+### 如果 shangcheng 是 SPA / 有 catch-all 路由
+
+如果访问 `/quit-smoking/` 被 shangcheng 的前端路由接管，在 Nginx 里加一条更具体的静态 location：
+
+```nginx
+location /quit-smoking/ {
+    try_files $uri $uri/ /quit-smoking/index.html;
+}
+```
+
+如果在 `/shangcheng/quit-smoking/` 下，路径同步调整。
+
+### 注意
+
+- 如果 shangcheng 本身是 Git 仓库，把 `quit-smoking/` 放进去会变成未跟踪文件；建议加到 shangcheng 的 `.gitignore`，或放在仓库外的静态目录再用软链接。
+- 这种方式只是“部署静态文件”，**不等于服务器能拉取 quit-smoking 私有仓库**。如果想让服务器 `git pull` quit-smoking，仍然需要单独的 Deploy Key。
+- 每次更新：重新上传 zip 解压覆盖，或 `git pull` + 软链接/复制。
+
 ## 从 GitHub 拉取（私有仓库，部署密钥）
 
 仓库是私有的，服务器直接 `git clone` 需要认证。推荐给服务器生成一把 **只读 Deploy Key**，添加到 GitHub 仓库的 Deploy keys，而不是用账号密码或 PAT。
