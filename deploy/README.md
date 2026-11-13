@@ -125,6 +125,13 @@ location ^~ /quit-smoking/ {
 
 这条 location 必须放在 shangcheng 的 `proxy_pass` 所在 `server { }` 内；`^~` 保证它优先于 Next.js 代理。
 
+当前服务器（Ubuntu）实际配置：
+
+- 文件：`/etc/nginx/sites-enabled/shangcheng`
+- `server_name shangcheng.club www.shangcheng.club;`
+- `location / { proxy_pass http://127.0.0.1:3000; }`
+- 在同一个 `server { }` 里加上面的 `/quit-smoking/` location，然后 `nginx -t && systemctl reload nginx`。
+
 #### 方案 B：放进 Next.js 的 `public/`
 
 ```bash
