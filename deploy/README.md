@@ -107,6 +107,24 @@ ls -l /opt/shangcheng/quit-smoking/index.html
 ls -l /opt/shangcheng/public/quit-smoking/index.html
 ```
 
+#### 当前服务器：文件在 `/var/www/quit-smoking/`
+
+如果戒烟文件放在 `/var/www/quit-smoking/`，配置应为：
+
+```nginx
+location = /quit-smoking {
+    return 301 /quit-smoking/;
+}
+
+location ^~ /quit-smoking/ {
+    root /var/www;
+    index index.html;
+    try_files $uri $uri/ /quit-smoking/index.html;
+}
+```
+
+这条 location 必须放在 shangcheng 的 `proxy_pass` 所在 `server { }` 内；`^~` 保证它优先于 Next.js 代理。
+
 #### 方案 B：放进 Next.js 的 `public/`
 
 ```bash
