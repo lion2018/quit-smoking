@@ -117,6 +117,36 @@ sudo chown -R www-data:www-data /var/www/quit-smoking
 sudo cp -r ~/quit-smoking/site/quit-smoking/* /var/www/quit-smoking/
 ```
 
+### 常见报错：`Repository not found`
+
+GitHub 对“私有仓库 + 无权限”统一返回 `Repository not found`，不一定是仓库不存在。按顺序排查：
+
+```bash
+whoami
+echo $HOME
+ls -l ~/.ssh/quit_smoking_deploy*
+ssh-keygen -lf ~/.ssh/quit_smoking_deploy.pub
+ssh -T git@github.com
+ssh -G github.com | grep -Ei 'hostname|port|identityfile|user'
+```
+
+判断：
+
+- `ssh -T` 显示 `Hi lion2018/quit-smoking!`：密钥已被该仓库识别；仍报 not found 时，检查 clone 的仓库地址/大小写，或密钥是否加到了另一个仓库。
+- `ssh -T` 显示 `Hi 其他用户名!`：服务器用错了密钥（可能是账号级 key），需要把 `quit_smoking_deploy.pub` 加到 `lion2018/quit-smoking` 的 Deploy keys。
+- `Permission denied (publickey)`：密钥没被使用；看 `ssh -G` 的 `identityfile` 是否指向 `/root/.ssh/quit_smoking_deploy`。
+- `ssh -G` 的 `hostname` 不是 `ssh.github.com` 或 `port` 不是 `443`：`~/.ssh/config` 没生效，检查是否有更早的 `Host github.com` 配置覆盖。
+- 指纹与 GitHub 仓库 Deploy keys 页面显示的不一致：加到 GitHub 的公钥不是这把密钥。
+
+如果 `sudo git clone` 找不到密钥，但普通用户 `git clone` 可以，说明密钥在 `/home/<user>/.ssh`，而 sudo 读的是 `/root/.ssh`。用普通用户 clone + rsync，或把密钥复制到 root 的 `.ssh`（权限 600）。
+
+显式指定密钥测试：
+
+```bash
+GIT_SSH_COMMAND='ssh -i ~/.ssh/quit_smoking_deploy -o IdentitiesOnly=yes -o HostName=ssh.github.com -o Port=443' \
+  git clone git@github.com:lion2018/quit-smoking.git /tmp/quit-test
+```
+
 ### 7. 更新代码
 
 root + 软链接方式：
