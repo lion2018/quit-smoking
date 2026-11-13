@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Documentation-only phase (as of 2026-11-13). Platform changed from WeChat mini-program to **mobile Web / PWA**. No source code, build tooling, or version control yet. **Do not start coding until the user explicitly approves.**
+MVP implemented as **mobile Web / PWA** (as of 2026-11-13). Source in `site/quit-smoking/`; docs in `docs/`; UI mockup in `design/`; deploy package in `deploy/`. Git repo initialized and pushed to GitHub (`main`). Before new features, update docs and get user approval; after changes, update `docs/开发文档.md` and `docs/开发日志.md`.
 
 ## 文档约定（必须遵守）
 
@@ -29,5 +29,7 @@ Documentation-only phase (as of 2026-11-13). Platform changed from WeChat mini-p
 - 部署：目标子目录 `/quit-smoking/`，所有资源用相对路径，不碰根 `location /`；配置见 `deploy/README.md` 与 `deploy/quit-smoking.nginx.conf`。Service Worker 需要 HTTPS。
 - MVP 代码：`site/quit-smoking/index.html`（单文件，原生 JS + localStorage）；PWA 文件在同目录；部署包 `deploy/quit-smoking.zip`。修改后重新压缩 zip。
 - GitHub：`https://github.com/lion2018/quit-smoking.git`，分支 `main`，远端 `git@github.com:lion2018/quit-smoking.git`。本机 Git 在 `C:\Users\Administrator\Tools\MinGit\cmd\git.exe`。
-- 推送使用 SSH key（`~/.ssh/id_ed25519_github`，config 走 `ssh.github.com:443`）；公钥需用户添加到 GitHub。绝不提交私钥、token 或服务器密码。
+- 推送使用 SSH key（`~/.ssh/id_ed25519_github`，config 走 `ssh.github.com:443`）；公钥已添加到 GitHub，`main` 已推送成功。推送命令：
+  `$env:GIT_SSH_COMMAND='"C:\Users\Administrator\Tools\MinGit\usr\bin\ssh.exe" -F "C:\Users\Administrator\.ssh\config"'; & "C:\Users\Administrator\Tools\MinGit\cmd\git.exe" push`
+- 绝不提交私钥、token 或服务器密码；GitHub 不再接受账号密码做 Git 操作，HTTPS 需用 PAT。
 - 本机无法直连 Microsoft 下载域名与 GitHub；安装工具/依赖时优先使用 Gitee、清华 TUNA、华为云镜像、npmmirror，并校验哈希。详见 `docs/开发文档.md` 第 14 章。

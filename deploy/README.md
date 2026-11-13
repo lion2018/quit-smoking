@@ -5,9 +5,9 @@
 
 ## 当前状态
 
-- 目前只有 UI 设计稿：`design/ui-mockup.html`。
-- **还没有功能版应用代码**。
-- 本文档先准备部署结构；功能版 MVP 完成后，把构建产物放进 `site/quit-smoking/` 即可。
+- MVP 已完成：`site/quit-smoking/`。
+- 部署包：`deploy/quit-smoking.zip`（解压后根目录就是 `index.html`）。
+- 本文档按“服务器根路径已有另一个项目，新增 `/quit-smoking/` 子目录”编写。
 
 ## 最终目录结构
 
@@ -22,6 +22,107 @@
 └── design/                 # 可选：设计稿预览
     └── ui-mockup.html
 ```
+
+## 腾讯云服务器操作顺序（推荐 zip 上传）
+
+假设服务器是 Linux + Nginx，已能 SSH 登录，根路径已有项目。
+
+### 1. 本地 Windows 上传 zip
+
+```powershell
+scp "E:\开发\001\deploy\quit-smoking.zip" root@<服务器IP>:/tmp/
+```
+
+如果用户名不是 `root`，换成实际用户（如 `ubuntu`、`centos`）。
+
+### 2. 登录服务器并解压
+
+```bash
+ssh root@<服务器IP>
+
+sudo mkdir -p /var/www/quit-smoking
+sudo unzip -o /tmp/quit-smoking.zip -d /var/www/quit-smoking
+
+# Ubuntu / Debian
+sudo chown -R www-data:www-data /var/www/quit-smoking
+
+# CentOS / TencentOS 通常是 nginx 用户
+# sudo chown -R nginx:nginx /var/www/quit-smoking
+
+sudo chmod -R 755 /var/www/quit-smoking
+ls -l /var/www/quit-smoking/index.html
+```
+
+### 3. 在现有站点的 server 块里加 location
+
+找到当前项目使用的 Nginx 配置，例如：
+
+- `/etc/nginx/conf.d/*.conf`
+- `/etc/nginx/sites-available/*`
+- 宝塔：`/www/server/panel/vhost/nginx/*.conf`
+
+在 **已有的 `server { ... }` 里面**加：
+
+```nginx
+location = /quit-smoking {
+    return 301 /quit-smoking/;
+}
+
+location /quit-smoking/ {
+    root /var/www;
+    index index.html;
+    try_files $uri $uri/ /quit-smoking/index.html;
+}
+```
+
+如果文件放在现有站点根目录下（例如宝塔的 `/www/wwwroot/example.com/quit-smoking/`），可以省略 `root`，只保留：
+
+```nginx
+location /quit-smoking/ {
+    try_files $uri $uri/ /quit-smoking/index.html;
+}
+```
+
+### 4. 检查并重载
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 5. 验证
+
+```bash
+curl -I http://<服务器IP>/quit-smoking/
+```
+
+浏览器访问：
+
+```
+http://<服务器IP>/quit-smoking/
+```
+
+根路径 `/` 的另一个项目应保持正常。
+
+### 常见问题
+
+- **404**：`root` 路径不对，或文件不在 `/var/www/quit-smoking/index.html`。
+- **403**：目录权限不对，或 CentOS SELinux 限制；先确认 `chown` 用户与 Nginx 运行用户一致。
+- **样式/图标 404**：确认 zip 解压后 `icons/` 和 `manifest.webmanifest` 与 `index.html` 同级。
+- **刷新子路径 404**：确认 `try_files` 已加。
+- **PWA 安装/离线不可用**：HTTP + IP 不支持 Service Worker，需要 HTTPS。
+
+### 宝塔面板
+
+1. 打开现有站点根目录（如 `/www/wwwroot/example.com/`）。
+2. 上传 `quit-smoking.zip` 并解压，得到 `quit-smoking/` 文件夹。
+3. 站点设置 → 配置文件，在 `server { }` 内加：
+   ```nginx
+   location /quit-smoking/ {
+       try_files $uri $uri/ /quit-smoking/index.html;
+   }
+   ```
+4. 保存 → 重载 Nginx。
 
 ## Nginx
 
