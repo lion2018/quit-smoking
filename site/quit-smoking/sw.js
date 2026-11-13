@@ -1,7 +1,7 @@
 /* 戒烟 PWA · Service Worker
  * 作用域由注册时的 scope 限定在 ./，不会影响服务器根目录的其他项目。
  */
-const CACHE = 'quit-smoking-v1.1.0';
+const CACHE = 'quit-smoking-v1.1.1';
 const ASSETS = [
   './',
   './index.html',

@@ -88,7 +88,7 @@
   .stat-label{font-size:10px;color:var(--muted);font-weight:800}
   .stat-value{font-size:25px;font-weight:900;letter-spacing:-1px;margin-top:4px}
   .stat-value span{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:0;margin-left:2px}
-  .stat-sub{font-size:10px;color:#94A3B8;margin-top:2px}
+  .stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
 
   .progress{height:8px;border-radius:999px;background:#E2E8F0;overflow:hidden}
   .progress i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--teal),var(--teal2));transition:width .4s ease}
@@ -154,26 +154,26 @@
   .flow-actions.bottom{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(244,247,246,0),var(--bg) 30%);padding-top:16px}
 
   .timer-page{background:radial-gradient(120% 80% at 50% 0%,#115E59 0%,#0B3B36 55%,#082F2B 100%);color:#fff;display:flex;flex-direction:column}
-  .timer-page .flow-top button{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#fff}
-  .timer-wrap{width:240px;height:240px;border-radius:50%;border:7px solid rgba(255,255,255,.16);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:26px auto 0;position:relative}
+  .timer-page .flow-top button{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.45);color:#fff}
+  .timer-wrap{width:240px;height:240px;border-radius:50%;border:7px solid rgba(255,255,255,.22);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:26px auto 0;position:relative}
   .timer-wrap::before{content:"";position:absolute;inset:8px;border-radius:50%;border:2px solid rgba(20,184,166,.45)}
   .timer-time{font-size:54px;font-weight:900;letter-spacing:-2px}
-  .timer-label{font-size:10px;letter-spacing:.12em;opacity:.65;margin-top:2px}
+  .timer-label{font-size:10px;letter-spacing:.12em;opacity:.8;margin-top:2px}
   .timer-page h2{text-align:center;margin-top:20px;font-size:23px}
-  .timer-guide{text-align:center;font-size:12px;line-height:1.65;opacity:.78;margin:8px auto 0;max-width:310px}
-  .timer-track{height:6px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:26px}
+  .timer-guide{text-align:center;font-size:12px;line-height:1.65;opacity:.88;margin:8px auto 0;max-width:310px}
+  .timer-track{height:6px;border-radius:999px;background:rgba(255,255,255,.28);overflow:hidden;margin-top:26px}
   .timer-track i{display:block;height:100%;background:#fff;border-radius:999px;width:100%;transition:width 1s linear}
-  .timer-page .btn-primary{background:#fff;color:#0B3B36;box-shadow:none}
-  .timer-page .btn-ghost{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff}
-  .timer-page .btn-text{color:rgba(255,255,255,.65)}
-  .timer-page .tiny{color:rgba(255,255,255,.55)}
+  .timer-page .btn-primary{background:#fff;color:#0B3B36;border:1px solid #fff;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+  .timer-page .btn-ghost{background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.55);color:#fff}
+  .timer-page .btn-text{color:rgba(255,255,255,.92);font-weight:800;text-decoration:underline;text-underline-offset:3px}
+  .timer-page .tiny{color:rgba(255,255,255,.75)}
 
   .task-list{margin-top:16px;display:flex;flex-direction:column;gap:10px}
   .task{background:#fff;border:1px solid rgba(15,23,42,.07);border-radius:18px;padding:14px;display:flex;gap:12px;align-items:center;text-align:left;box-shadow:0 4px 16px rgba(15,23,42,.04)}
   .task-icon{width:42px;height:42px;border-radius:14px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex:0 0 42px}
   .task h4{font-size:13px}
   .task p{font-size:10px;color:var(--muted);margin-top:3px}
-  .task .time{margin-left:auto;font-size:10px;color:#94A3B8;font-weight:700;white-space:nowrap}
+  .task .time{margin-left:auto;font-size:10px;color:var(--muted);font-weight:700;white-space:nowrap}
 
   .done-page{text-align:center}
   .done-check{width:82px;height:82px;border-radius:50%;background:var(--green-soft);color:#059669;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:900;margin:18px auto 14px}
@@ -205,7 +205,7 @@
   .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
   .bar i{display:block;width:100%;border-radius:7px 7px 4px 4px;background:#CCFBF1;min-height:4px}
   .bar.today i{background:linear-gradient(180deg,var(--teal2),var(--teal))}
-  .bar span{font-size:10px;color:#94A3B8;font-weight:700}
+  .bar span{font-size:10px;color:var(--muted);font-weight:700}
   .heatmap{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
   .day{aspect-ratio:1;border-radius:6px;background:#E2E8F0}
   .day.green{background:#34D399}.day.amber{background:#FBBF24}.day.gray{background:#E2E8F0}
@@ -282,16 +282,16 @@
   html[data-theme="dark"] .trigger-row .track{background:#1E293B}
   html[data-theme="dark"] .bar i{background:#134E4A}
   html[data-theme="dark"] .heatmap .day.gray{background:#1E293B}
-  html[data-theme="dark"] .stat-sub{color:#64748B}
+  html[data-theme="dark"] .stat-sub{color:#94A3B8}
   html[data-theme="dark"] .icon-btn{color:#CBD5E1}
   html[data-theme="dark"] .sheet{box-shadow:0 -22px 50px rgba(0,0,0,.5)}
   html[data-theme="dark"] .overlay{background:rgba(0,0,0,.65)}
   html[data-theme="dark"] .game-area{background:linear-gradient(160deg,#0B3B36,#061F1C)}
   html[data-theme="dark"] .toast{background:#E5E7EB;color:#0B1220}
-  html[data-theme="dark"] .timer-page .flow-top button{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#fff}
-  html[data-theme="dark"] .timer-page .btn-ghost{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff}
-  html[data-theme="dark"] .timer-page .btn-primary{background:#fff;color:#0B3B36}
-  html[data-theme="dark"] .timer-page .tiny{color:rgba(255,255,255,.55)}
+  html[data-theme="dark"] .timer-page .flow-top button{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.45);color:#fff}
+  html[data-theme="dark"] .timer-page .btn-ghost{background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.55);color:#fff}
+  html[data-theme="dark"] .timer-page .btn-primary{background:#fff;color:#0B3B36;border:1px solid #fff;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+  html[data-theme="dark"] .timer-page .tiny{color:rgba(255,255,255,.75)}
 
   @media (max-width:380px){
     .page{padding-left:14px;padding-right:14px}
@@ -593,7 +593,7 @@
 
   var STORAGE_KEY = 'quit-smoking.state.v1';
   var THEME_KEY = 'quit-smoking.theme';
-  var APP_VERSION = '1.1.0';
+  var APP_VERSION = '1.1.1';
   var MILESTONES = [
     { days: 1, label: '24 小时' },
     { days: 3, label: '3 天' },
