@@ -23,6 +23,120 @@
     └── ui-mockup.html
 ```
 
+## 从 GitHub 拉取（私有仓库，部署密钥）
+
+仓库是私有的，服务器直接 `git clone` 需要认证。推荐给服务器生成一把 **只读 Deploy Key**，添加到 GitHub 仓库的 Deploy keys，而不是用账号密码或 PAT。
+
+### 1. 在服务器生成部署密钥
+
+登录服务器后执行（root 或你的部署用户）：
+
+```bash
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+ssh-keygen -t ed25519 -C "tencent-quit-smoking-deploy" -f ~/.ssh/quit_smoking_deploy -N ""
+cat ~/.ssh/quit_smoking_deploy.pub
+```
+
+复制输出的整行公钥。
+
+### 2. 添加到 GitHub 仓库
+
+打开仓库：
+
+```
+https://github.com/lion2018/quit-smoking/settings/keys
+```
+
+点击 **Add deploy key**：
+
+- Title：`Tencent Cloud`
+- Key：粘贴服务器公钥
+- **Allow write access：不要勾选**（服务器只需要拉取）
+
+### 3. 配置 SSH（GitHub 443 端口）
+
+如果服务器访问 `github.com:22` 不稳定，用官方 443 端口：
+
+```bash
+cat >> ~/.ssh/config <<'EOF'
+Host github.com
+  HostName ssh.github.com
+  Port 443
+  User git
+  IdentityFile ~/.ssh/quit_smoking_deploy
+  IdentitiesOnly yes
+EOF
+chmod 600 ~/.ssh/config ~/.ssh/quit_smoking_deploy
+```
+
+如果 `~/.ssh/config` 里已经有 `Host github.com`，请编辑原配置，不要重复追加。
+
+### 4. 测试
+
+```bash
+ssh -T git@github.com
+```
+
+成功会显示类似：
+
+```
+Hi lion2018/quit-smoking! You've successfully authenticated, but GitHub does not provide shell access.
+```
+
+`ssh -T` 返回 1 是正常的，不代表失败。
+
+### 5. 克隆（推荐 root 登录）
+
+```bash
+sudo mkdir -p /var/www
+sudo git clone git@github.com:lion2018/quit-smoking.git /var/www/quit-smoking-src
+
+# Nginx 实际服务的是仓库里的 site/quit-smoking/
+sudo ln -sfn /var/www/quit-smoking-src/site/quit-smoking /var/www/quit-smoking
+sudo chmod -R 755 /var/www/quit-smoking-src
+```
+
+如果 `sudo git clone` 找不到密钥，说明你用的是非 root 用户：
+sudo 会读 `/root/.ssh`，不是你的 `~/.ssh`。改用下面的“非 root 用户”方式。
+
+### 6. 非 root 用户克隆
+
+```bash
+cd ~
+git clone git@github.com:lion2018/quit-smoking.git
+
+sudo mkdir -p /var/www/quit-smoking
+sudo rsync -a --delete ~/quit-smoking/site/quit-smoking/ /var/www/quit-smoking/
+sudo chown -R www-data:www-data /var/www/quit-smoking
+```
+
+没有 `rsync` 时：
+
+```bash
+sudo cp -r ~/quit-smoking/site/quit-smoking/* /var/www/quit-smoking/
+```
+
+### 7. 更新代码
+
+root + 软链接方式：
+
+```bash
+sudo git -C /var/www/quit-smoking-src pull --ff-only
+```
+
+非 root + rsync 方式：
+
+```bash
+cd ~/quit-smoking
+git pull --ff-only
+sudo rsync -a --delete ~/quit-smoking/site/quit-smoking/ /var/www/quit-smoking/
+sudo chown -R www-data:www-data /var/www/quit-smoking
+```
+
+> 不建议把 GitHub 账号密码或 PAT 直接写进 `git clone https://...` 命令；  
+> GitHub 已不接受账号密码做 Git 操作，HTTPS 只能用 PAT。Deploy Key 更安全。
+
 ## 腾讯云服务器操作顺序（推荐 zip 上传）
 
 假设服务器是 Linux + Nginx，已能 SSH 登录，根路径已有项目。
@@ -136,6 +250,7 @@ sudo systemctl reload nginx
 要点：
 
 - 文件放在 `/var/www/quit-smoking/`。
+- 如果 `/var/www/quit-smoking` 是指向仓库 `site/quit-smoking/` 的软链接，Nginx 默认会跟随；若配置了 `disable_symlinks on`，请改用 rsync 复制。
 - 不要修改 `location /`，根项目不受影响。
 - `try_files` 让子路径刷新不 404。
 - `index.html` 不强缓存，静态资源可长缓存。
