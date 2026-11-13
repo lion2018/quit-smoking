@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>戒烟 PWA · UI 设计稿 v1.0</title>
+<style>
+  :root {
+    --teal: #0F766E;
+    --teal-2: #14B8A6;
+    --teal-soft: #ECFDF5;
+    --amber: #F59E0B;
+    --amber-2: #FBBF24;
+    --amber-soft: #FEF3C7;
+    --bg: #F4F7F6;
+    --card: #FFFFFF;
+    --ink: #0F172A;
+    --muted: #64748B;
+    --line: #E2E8F0;
+    --green: #10B981;
+    --green-soft: #D1FAE5;
+    --blue: #3B82F6;
+    --shadow: 0 8px 28px rgba(15, 23, 42, .06);
+    --radius: 20px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: #E9EFED;
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num, .timer, .big-stat, .stat-value { font-variant-numeric: tabular-nums; }
+
+  /* ---------- board ---------- */
+  .board-header { max-width: 1440px; margin: 0 auto; padding: 56px 40px 8px; }
+  .kicker { font-size: 12px; font-weight: 800; letter-spacing: .16em; color: var(--teal); text-transform: uppercase; }
+  .board-header h1 { font-size: 44px; line-height: 1.08; letter-spacing: -1.4px; margin: 12px 0 10px; }
+  .board-header p { color: var(--muted); font-size: 15px; margin: 0; }
+  .tokens { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .token { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; font-size: 11px; color: var(--muted); }
+  .token b { width: 16px; height: 16px; border-radius: 50%; display: block; }
+  .board { max-width: 1440px; margin: 0 auto; padding: 32px 40px 100px; display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start; }
+  .frame { margin: 0; width: 390px; }
+  .frame figcaption { font-size: 12px; color: var(--muted); margin: 0 0 10px 8px; font-weight: 700; letter-spacing: .02em; }
+  .frame figcaption b { color: var(--ink); margin-right: 6px; }
+
+  /* ---------- phone ---------- */
+  .phone {
+    width: 390px; height: 844px; background: var(--bg); border-radius: 46px;
+    box-shadow: 0 26px 60px rgba(15, 23, 42, .18), 0 0 0 10px #0B1220;
+    overflow: hidden; position: relative;
+  }
+  .statusbar { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-size: 12px; font-weight: 800; color: var(--ink); }
+  .status-icons { font-size: 10px; letter-spacing: 1px; opacity: .8; }
+  .screen { position: absolute; top: 44px; left: 0; right: 0; bottom: 0; padding: 6px 20px 96px; overflow: hidden; }
+  .screen.no-tabs { padding-bottom: 28px; }
+  .home-indicator { position: absolute; left: 50%; bottom: 7px; transform: translateX(-50%); width: 132px; height: 5px; border-radius: 999px; background: #0F172A; opacity: .82; z-index: 20; }
+
+  /* ---------- type & atoms ---------- */
+  .eyebrow { font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: .04em; }
+  h2 { margin: 4px 0 0; font-size: 30px; letter-spacing: -.9px; line-height: 1.15; }
+  h3 { margin: 0; font-size: 22px; letter-spacing: -.5px; line-height: 1.2; }
+  h4 { margin: 0; font-size: 14px; letter-spacing: -.2px; }
+  p { margin: 0; }
+  .muted { color: var(--muted); }
+  .tiny { font-size: 11px; line-height: 1.5; color: var(--muted); }
+  .card { background: var(--card); border: 1px solid rgba(15, 23, 42, .06); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 999px; font-size: 10px; font-weight: 800; }
+  .badge.success { background: var(--green-soft); color: #065F46; }
+  .badge.soft { background: #F1F5F9; color: #475569; }
+  .badge.amber { background: var(--amber-soft); color: #92400E; }
+  .icon-btn { width: 38px; height: 38px; border-radius: 14px; border: 1px solid var(--line); background: #fff; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .btn { width: 100%; border: 0; border-radius: 16px; padding: 15px 18px; font-size: 15px; font-weight: 800; font-family: inherit; }
+  .btn-primary { background: var(--teal); color: #fff; box-shadow: 0 10px 24px rgba(15, 118, 110, .22); }
+  .btn-amber { background: linear-gradient(135deg, var(--amber-2), var(--amber)); color: #3B1D00; box-shadow: 0 12px 26px rgba(245, 158, 11, .3); }
+  .btn-ghost { background: #fff; border: 1px solid var(--line); color: var(--ink); }
+  .btn-text { width: 100%; border: 0; background: transparent; color: var(--muted); font-size: 13px; font-family: inherit; padding: 13px 0; }
+  .progress { height: 8px; border-radius: 999px; background: #E2E8F0; overflow: hidden; }
+  .progress i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--teal), var(--teal-2)); }
+
+  /* ---------- tabbar ---------- */
+  .tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 78px; background: rgba(255,255,255,.97); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 8px 18px; z-index: 10; }
+  .tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #94A3B8; font-size: 10px; font-weight: 700; }
+  .tab.active { color: var(--teal); }
+  .tab svg { width: 21px; height: 21px; }
+
+  /* ---------- home ---------- */
+  .home-top { display: flex; justify-content: space-between; align-items: flex-start; padding-top: 4px; }
+  .home-badges { display: flex; gap: 7px; margin-top: 9px; }
+  .cta-craving { width: 100%; margin-top: 15px; border: 0; border-radius: 19px; padding: 17px 20px; font-size: 17px; font-weight: 900; color: #3B1D00; background: linear-gradient(135deg, var(--amber-2), var(--amber)); box-shadow: 0 12px 26px rgba(245, 158, 11, .3); display: flex; align-items: center; justify-content: center; gap: 10px; font-family: inherit; }
+  .pulse { width: 9px; height: 9px; border-radius: 50%; background: #7C2D12; box-shadow: 0 0 0 6px rgba(124, 45, 18, .12); }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .stat { background: #fff; border: 1px solid rgba(15,23,42,.06); border-radius: 18px; padding: 12px 14px; box-shadow: 0 4px 16px rgba(15,23,42,.04); }
+  .stat-label { font-size: 11px; color: var(--muted); font-weight: 700; }
+  .stat-value { font-size: 25px; font-weight: 900; letter-spacing: -1px; margin-top: 4px; }
+  .stat-value span { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0; margin-left: 2px; }
+  .stat-sub { font-size: 10px; color: #94A3B8; margin-top: 2px; }
+  .milestone { margin-top: 10px; padding: 13px 15px; }
+  .milestone .row { margin-bottom: 8px; }
+  .milestone .label { font-size: 11px; font-weight: 800; }
+  .milestone .value { font-size: 11px; color: var(--muted); font-weight: 700; }
+  .insight { margin-top: 10px; display: flex; gap: 11px; align-items: flex-start; padding: 12px 14px; }
+  .insight-icon { width: 38px; height: 38px; border-radius: 13px; background: var(--amber-soft); color: #92400E; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; flex: 0 0 38px; }
+  .insight h4 { font-size: 12px; margin-bottom: 3px; }
+  .insight p { font-size: 11px; line-height: 1.45; color: var(--muted); }
+  .fund { margin-top: 10px; padding: 12px 14px; }
+  .fund .row { margin-bottom: 7px; }
+  .fund .amount { font-size: 12px; font-weight: 800; }
+  .fund .goal { font-size: 11px; color: var(--muted); }
+
+  /* ---------- sheet ---------- */
+  .scrim { position: absolute; inset: 0; background: rgba(15,23,42,.48); z-index: 5; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 28px 28px 0 0; padding: 10px 20px 26px; box-shadow: 0 -22px 50px rgba(15,23,42,.18); z-index: 6; }
+  .handle { width: 40px; height: 5px; border-radius: 999px; background: #CBD5E1; margin: 0 auto 14px; }
+  .sheet h3 { font-size: 22px; }
+  .sheet .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .option { width: 100%; border: 1px solid var(--line); background: #fff; border-radius: 16px; padding: 14px 15px; font-size: 14px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-top: 9px; font-family: inherit; color: var(--ink); }
+  .option.primary { background: var(--teal-soft); border-color: #99F6E4; color: var(--teal); }
+  .option .tag { font-size: 10px; background: var(--teal); color: #fff; padding: 3px 7px; border-radius: 999px; }
+  .option .arrow { color: #94A3B8; font-weight: 700; }
+
+  /* ---------- flow ---------- */
+  .flow-top { display: flex; justify-content: space-between; align-items: center; padding: 4px 0 2px; }
+  .flow-top .back, .flow-top .close { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: #fff; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 16px; font-weight: 800; }
+  .flow-title { margin-top: 10px; }
+  .flow-title h3 { font-size: 24px; }
+  .flow-title p { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+  .triage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+  .triage-card { background: #fff; border: 1px solid rgba(15,23,42,.07); border-radius: 18px; padding: 12px; min-height: 92px; box-shadow: 0 4px 16px rgba(15,23,42,.04); }
+  .triage-icon { width: 34px; height: 34px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; }
+  .triage-card h4 { font-size: 13px; margin-top: 9px; }
+  .triage-card p { font-size: 11px; line-height: 1.45; color: var(--muted); margin-top: 3px; }
+  .flow-actions { position: absolute; left: 20px; right: 20px; bottom: 22px; }
+
+  /* ---------- surf ---------- */
+  .surf { position: absolute; top: 44px; left: 0; right: 0; bottom: 0; background: radial-gradient(120% 80% at 50% 0%, #115E59 0%, #0B3B36 55%, #082F2B 100%); color: #fff; padding: 18px 20px 24px; overflow: hidden; }
+  .surf .flow-top .back, .surf .flow-top .close { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.18); color: #fff; }
+  .surf .timer-wrap { margin: 26px auto 0; width: 236px; height: 236px; border-radius: 50%; border: 7px solid rgba(255,255,255,.16); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+  .surf .timer-wrap::before { content: ""; position: absolute; inset: 8px; border-radius: 50%; border: 2px solid rgba(20,184,166,.45); }
+  .surf .timer { font-size: 54px; font-weight: 900; letter-spacing: -2px; }
+  .surf .timer-label { font-size: 10px; letter-spacing: .12em; opacity: .6; margin-top: 2px; }
+  .surf h3 { text-align: center; font-size: 23px; margin-top: 20px; font-weight: 800; }
+  .surf .guide { text-align: center; font-size: 12px; line-height: 1.65; opacity: .78; margin: 8px auto 0; max-width: 300px; }
+  .surf .prompt { text-align: center; font-size: 11px; opacity: .65; margin-top: 18px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin-top: 9px; }
+  .chip { border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.08); color: #fff; padding: 7px 11px; border-radius: 999px; font-size: 11px; font-family: inherit; }
+  .chip.active { background: #fff; color: #0B3B36; border-color: #fff; font-weight: 800; }
+  .surf-actions { position: absolute; left: 20px; right: 20px; bottom: 22px; }
+  .surf-actions .btn-primary { background: #fff; color: #0B3B36; box-shadow: none; }
+  .surf-actions .btn-text { color: rgba(255,255,255,.6); }
+
+  /* ---------- tasks ---------- */
+  .task-list { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .task { background: #fff; border: 1px solid rgba(15,23,42,.07); border-radius: 18px; padding: 14px; display: flex; gap: 12px; align-items: center; box-shadow: 0 4px 16px rgba(15,23,42,.04); }
+  .task-icon { width: 42px; height: 42px; border-radius: 14px; background: var(--teal-soft); color: var(--teal); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; flex: 0 0 42px; }
+  .task h4 { font-size: 13px; }
+  .task p { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .task .time { margin-left: auto; font-size: 10px; color: #94A3B8; font-weight: 700; }
+
+  /* ---------- done ---------- */
+  .done { text-align: center; padding-top: 12px; }
+  .done-check { width: 82px; height: 82px; border-radius: 50%; background: var(--green-soft); color: #059669; display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: 900; margin: 18px auto 14px; }
+  .done h3 { font-size: 28px; }
+  .compare-pill { display: inline-flex; align-items: center; gap: 7px; background: var(--teal-soft); color: #047857; padding: 8px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; margin-top: 10px; }
+  .compare-pill .plus { background: #059669; color: #fff; border-radius: 999px; padding: 2px 6px; font-size: 10px; }
+  .praise { background: #F8FAFC; border: 1px solid var(--line); border-radius: 18px; padding: 15px; font-size: 13px; line-height: 1.7; text-align: left; margin-top: 16px; }
+  .praise b { color: var(--teal); }
+  .scale-label { text-align: left; font-size: 10px; color: var(--muted); font-weight: 700; margin: 16px 0 7px; }
+  .scale { display: flex; gap: 5px; }
+  .scale span { flex: 1; height: 32px; border-radius: 9px; border: 1px solid var(--line); background: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--muted); font-weight: 700; }
+  .scale span.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+  .done-actions { position: absolute; left: 20px; right: 20px; bottom: 22px; }
+
+  /* ---------- record ---------- */
+  .record-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+  .record-chips span { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 7px 11px; font-size: 11px; color: var(--muted); font-weight: 700; }
+  .record-chips span.active { background: var(--amber-soft); border-color: #FCD34D; color: #92400E; }
+  .if-then { background: var(--teal-soft); border: 1px dashed #99F6E4; border-radius: 16px; padding: 13px 14px; font-size: 12px; line-height: 1.65; color: #115E59; margin-top: 10px; }
+
+  /* ---------- stats ---------- */
+  .big-stat { font-size: 42px; font-weight: 900; letter-spacing: -2px; }
+  .big-stat span { font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: 0; margin-left: 4px; }
+  .trend { font-size: 10px; font-weight: 800; color: #047857; background: var(--teal-soft); padding: 4px 8px; border-radius: 999px; }
+  .mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 12px; }
+  .mini { background: #fff; border: 1px solid rgba(15,23,42,.06); border-radius: 16px; padding: 12px; }
+  .mini .k { font-size: 10px; color: var(--muted); font-weight: 700; }
+  .mini .v { font-size: 20px; font-weight: 900; margin-top: 3px; letter-spacing: -.6px; }
+  .mini .v span { font-size: 10px; color: var(--muted); font-weight: 700; }
+  .bars { display: flex; align-items: flex-end; gap: 9px; height: 112px; margin-top: 14px; }
+  .bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+  .bar i { display: block; width: 100%; border-radius: 7px 7px 4px 4px; background: #CCFBF1; }
+  .bar.today i { background: linear-gradient(180deg, var(--teal-2), var(--teal)); }
+  .bar span { font-size: 10px; color: #94A3B8; font-weight: 700; }
+
+  /* ---------- weekly ---------- */
+  .weekly-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .weekly-card { background: #fff; border: 1px solid rgba(15,23,42,.06); border-radius: 16px; padding: 12px 10px; }
+  .weekly-card .k { font-size: 10px; color: var(--muted); font-weight: 800; }
+  .weekly-card .v { font-size: 20px; font-weight: 900; margin-top: 3px; letter-spacing: -.5px; }
+  .weekly-card .d { font-size: 10px; font-weight: 800; margin-top: 2px; color: #047857; }
+  .heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px; }
+  .day { aspect-ratio: 1; border-radius: 6px; background: #E2E8F0; }
+  .day.green { background: #34D399; }
+  .day.amber { background: #FBBF24; }
+  .day.gray { background: #E2E8F0; }
+  .trigger-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .trigger-row .name { width: 48px; font-size: 11px; color: var(--muted); font-weight: 800; }
+  .trigger-row .track { flex: 1; height: 7px; border-radius: 999px; background: #F1F5F9; overflow: hidden; }
+  .trigger-row .track i { display: block; height: 100%; border-radius: 999px; background: #F59E0B; }
+  .trigger-row .pct { width: 30px; text-align: right; font-size: 11px; color: var(--muted); font-weight: 800; }
+
+  /* ---------- settings ---------- */
+  .profile { display: flex; align-items: center; gap: 12px; padding: 14px; }
+  .avatar { width: 46px; height: 46px; border-radius: 16px; background: linear-gradient(135deg, var(--teal), var(--teal-2)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; }
+  .list { background: #fff; border: 1px solid rgba(15,23,42,.06); border-radius: 20px; overflow: hidden; margin-top: 12px; }
+  .list .item { display: flex; align-items: center; justify-content: space-between; padding: 13px 15px; border-bottom: 1px solid #F1F5F9; font-size: 13px; font-weight: 700; }
+  .list .item:last-child { border-bottom: 0; }
+  .list .item .right { color: var(--muted); font-size: 11px; font-weight: 600; }
+  .switch { width: 38px; height: 22px; border-radius: 999px; background: var(--teal); position: relative; }
+  .switch::after { content: ""; position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; }
+  .section-label { font-size: 10px; color: var(--muted); font-weight: 800; letter-spacing: .08em; margin: 16px 0 0 4px; text-transform: uppercase; }
+
+  /* ---------- onboarding / consent ---------- */
+  .brand { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+  .brand-mark { width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg, var(--teal), var(--teal-2)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; }
+  .consent { display: flex; gap: 10px; align-items: flex-start; padding: 13px 14px; border: 1px solid var(--line); border-radius: 16px; background: #fff; margin-top: 10px; }
+  .check { width: 22px; height: 22px; border-radius: 7px; border: 1.5px solid #CBD5E1; flex: 0 0 22px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 900; }
+  .check.on { background: var(--teal); border-color: var(--teal); }
+  .consent h4 { font-size: 12px; }
+  .consent p { font-size: 10px; color: var(--muted); line-height: 1.45; margin-top: 2px; }
+
+  /* ---------- intensity ---------- */
+  .intensity { margin-top: 12px; }
+  .intensity .lab { font-size: 11px; font-weight: 800; color: var(--muted); margin-bottom: 7px; }
+  .intensity .opts { display: flex; gap: 6px; }
+  .intensity .opts span { flex: 1; text-align: center; padding: 8px 0; border: 1px solid var(--line); border-radius: 10px; background: #fff; font-size: 11px; font-weight: 700; color: var(--muted); }
+  .intensity .opts span.on { background: var(--amber-soft); border-color: #FCD34D; color: #92400E; }
+
+  /* ---------- notes ---------- */
+  .notes { max-width: 1440px; margin: 0 auto; padding: 0 40px 80px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .note { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 16px; font-size: 12px; line-height: 1.6; color: var(--muted); }
+  .note b { display: block; color: var(--ink); font-size: 13px; margin-bottom: 4px; }
+  @media (max-width: 900px) { .board-header, .board, .notes { padding-left: 20px; padding-right: 20px; } .board-header h1 { font-size: 32px; } .notes { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="board-header">
+  <div class="kicker">戒烟 PWA · UI 设计稿</div>
+  <h1>先把“想抽的那一刻”做对</h1>
+  <p>移动端 390 × 844 · 浅色主题 · 设计稿 v1.0 · 2026-11-13 · 可直接在 Edge 中打开</p>
+  <div class="tokens">
+    <span class="token"><b style="background:#0F766E"></b>Primary #0F766E</span>
+    <span class="token"><b style="background:#14B8A6"></b>Mint #14B8A6</span>
+    <span class="token"><b style="background:#F59E0B"></b>Craving #F59E0B</span>
+    <span class="token"><b style="background:#10B981"></b>Success #10B981</span>
+    <span class="token"><b style="background:#F4F7F6"></b>BG #F4F7F6</span>
+    <span class="token"><b style="background:#0F172A"></b>Ink #0F172A</span>
+  </div>
+</header>
+
+<main class="board">
+
+  <!-- 00 ONBOARDING -->
+  <figure class="frame">
+    <figcaption><b>00</b>首次使用 · 知情同意</figcaption>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">▮▮▮ ⌁ ▰</span></div>
+      <div class="screen no-tabs">
+        <div class="brand">
+          <div class="brand-mark">戒</div>
+          <div>
+            <div class="eyebrow">戒烟 PWA</div>
+            <h4 style="font-size:14px;margin-top:2px">先把数据怎么用说清楚</h4>
+          </div>
+        </div>
+        <div class="flow-title">
+          <h3>开始之前，先约定三件事</h3>
+          <p>你可以随时退出、导出或删除数据。我们不会出售你的健康数据。</p>
+        </div>
+
+        <div class="consent">
+          <div class="check on">✓</div>
+          <div>
+            <h4>在本机保存戒烟数据</h4>
+            <p>用于倒计时、延迟记录、统计和提醒。默认只存本地，不上传。</p>
+          </div>
+        </div>
+
+        <div class="consent">
+          <div class="check"></div>
+          <div>
+            <h4>匿名贡献使用数据（可选）</h4>
+            <p>只上传去标识化的事件，用于分析哪种转移注意力的方法对更多人有效。可随时关闭。</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:10px;padding:13px 14px;background:#F8FAFC">
+          <h4 style="font-size:12px">不是医疗建议</h4>
+          <p class="tiny" style="margin-top:3px">药物和戒断处理请咨询医生或戒烟门诊；紧急情况请联系专业机构。</p>
+        </div>
+
+        <div class="flow-actions">
+          <button class="btn btn-primary">开始设置</button>
+          <button class="btn-text">先看看，不授权研究数据</button>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </figure>
+
+  <!-- 01 HOME -->
+  <figure class="frame">
+    <figcaption><b>01</b>今天 · 首页</figcaption>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">▮▮▮ ⌁ ▰</span></div>
+      <div class="screen">
+        <div class="home-top">
+          <div>
+            <div class="eyebrow">今天 · 11 月 13 日</div>
+            <h2>戒烟第 <span class="num">12</span> 天</h2>
+          </div>
+          <button class="icon-btn" aria-label="设置">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
+          </button>
+        </div>
+        <div class="home-badges">
+          <span class="badge success">今天无烟</span>
+          <span class="badge soft">累计无烟 9 天</span>
+        </div>
+
+        <button class="cta-craving"><span class="pulse"></span>我现在想抽烟</button>
+
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-label">估算少抽</div>
+            <div class="stat-value">23<span>支</span></div>
+            <div class="stat-sub">按已完成天数</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">估算省下</div>
+            <div class="stat-value">¥184</div>
+            <div class="stat-sub">只算烟钱</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">延迟总时长</div>
+            <div class="stat-value">76<span>分钟</span></div>
+            <div class="stat-sub">累计</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">熬过波数</div>
+            <div class="stat-value">18<span>波</span></div>
+            <div class="stat-sub">其中高渴求 5 次</div>
+          </div>
+        </div>
+
+        <div class="card milestone">
+          <div class="row">
+            <span class="label">下一个里程碑：2 周</span>
+            <span class="value">还有 2 天</span>
+          </div>
+          <div class="progress"><i style="width:70%"></i></div>
+        </div>
+
+        <div class="card insight">
+          <div class="insight-icon">!</div>
+          <div>
+            <h4>今日洞察</h4>
+            <p>14:00–16:00 是你的高危时段。最有效的方法：快走 5 分钟。</p>
+          </div>
+        </div>
+
+        <div class="card fund">
+          <div class="row">
+            <span class="amount">戒烟基金 ¥184</span>
+            <span class="goal">目标 ¥1,500</span>
+          </div>
+          <div class="progress"><i style="width:12%"></i></div>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>
+          今天
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14M5 12h14M5 19h9"/></svg>
+          记录
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>
+          进展
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-4 4-5.5 7-5.5s5.5 1.5 7 5.5"/></svg>
+          我的
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </figure>
+
+  <!-- 02 CRAVING SHEET -->
+  <figure class="frame">
+    <figcaption><b>02</b>渴求入口 · 底部弹层</figcaption>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">▮▮▮ ⌁ ▰</span></div>
+      <div class="screen">
+        <div class="home-top">
+          <div>
+            <div class="eyebrow">今天 · 11 月 13 日</div>
+            <h2>戒烟第 <span class="num">12</span> 天</h2>
+          </div>
+          <button class="icon-btn" aria-label="设置">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
+          </button>
+        </div>
+        <div class="home-badges"><span class="badge success">今天无烟</span></div>
+        <button class="cta-craving"><span class="pulse"></span>我现在想抽烟</button>
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-label">估算少抽</div><div class="stat-value">23<span>支</span></div></div>
+          <div class="stat"><div class="stat-label">估算省下</div><div class="stat-value">¥184</div></div>
+        </div>
+      </div>
+
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="handle"></div>
+        <h3>现在很想抽？</h3>
+        <p class="sub">先给自己几分钟，不用一次扛很久。</p>
+        <button class="option primary">先撑 10 分钟<span class="tag">推荐</span></button>
+        <button class="option">先撑 3 分钟<span class="arrow">›</span></button>
+        <button class="option">给我一个任务<span class="arrow">›</span></button>
+        <button class="option">玩一局（2–3 分钟）<span class="arrow">›</span></button>
+        <button class="btn-text">我现在就要抽</button>
+        <p class="tiny" style="text-align:center">你可以随时改变主意。</p>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </figure>
+
+  <!-- 03 TRIAGE -->
+  <figure class="frame">
+    <figcaption><b>03</b>10 秒分型</figcaption>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">▮▮▮ ⌁ ▰</span></div>
+      <div class="screen no-tabs">
+        <div class="flow-top">
+          <div class="back">←</div>
+          <span class="tiny">1 / 3</span>
+          <div class="close">×</div>
+        </div>
+        <div class="flow-title">
+          <h3>现在更像哪一种？</h3>
+          <p>选一个最接近的，不用很准确。不同的渴求，用不同的办法。</p>
+        </div>
+        <div class="intensity">
+          <div class="lab">现在有多想抽？</div>
+          <div class="opts"><span>0–3</span><span>4–6</span><span class="on">7–8</span><span>9–10</span></div>
+        </div>
+        <div class="triage-grid">
+          <div class="triage-card">
+            <div class="triage-icon" style="background:#F1F5F9;color:#475569">习</div>
+            <h4>习惯 / 自动化</h4>
+            <p>手自动就去拿了，没怎么想</p>
+          </div>
+          <div class="triage-card">
+            <div class="triage-icon" style="background:#FEF3C7;color:#92400E">情</div>
+            <h4>情绪 / 压力</h4>
+            <p>烦、焦虑、想放松一下</p>
+          </div>
+          <div class="triage-card">
+            <div class="triage-icon" style="background:#DBEAFE;color:#1D4ED8">社</div>
+            <h4>社交 / 递烟</h4>
+            <p>别人递给我，或大家都在抽</p>
+          </div>
+          <div class="triage-card">
+            <div class="triage-icon" style="background:#FCE7F3;color:#9D174D">戒</div>
+            <h4>戒断 / 生理</h4>
+            <p>心慌、坐立不安、注意力散</p>
+          </div>
+          <div class="triage-card">
+            <div class="triage-icon" style="background:#EDE9FE;color:#6D28D9">无</div>
+            <h4>无聊 / 空虚</h4>
+            <p>没事干，就想点一支</p>
+          </div>
+          <div class="triage-card">
+            <div class="triage-icon" style="background:#DCFCE7;color:#166534">线</div>
+            <h4>线索 / 条件反射</h4>
+            <p>饭后、咖啡、酒、开车、电话</p>
+          </div>
+        </div>
+        <div class="flow-actions">
+          <button class="btn btn-ghost">跳过，直接开始 3 分钟</button>
+          <button class="btn-text">我现在就要抽</button>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </figure>
+
+  <!-- 04 SURF -->
+  <figure class="frame">
+    <figcaption><b>04</b>冲动冲浪 · 3 分钟计时</figcaption>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="status-icons" style="color:#fff;opacity:.7">▮▮▮ ⌁ ▰</span></div>
+      <div class="surf">
+        <div class="flow-top">
+          <div class="back">←</div>
+          <span class="tiny" style="color:rgba(255,255,255,.6)">3 分钟 · 冲动冲浪</span>
+          <div class="close">×</div>
+        </div>
+        <div class="timer-wrap">
+          <div class="timer">03:00</div>
+          <div class="timer-label">先观察，不用赶走它</div>
+        </div>
+        <h3>不用赶走它，只要观察它。</h3>
+        <p class="guide">冲动像波浪：会上升、达到峰值、然后下降。你不需要服从它。</p>
+        <p class="prompt">冲动在身体的哪个位置？</p>
+        <div class="chips">
+          <button class="chip">喉咙</button>
+          <button class="chip active">胸口</button>
+          <button class="chip">手</button>
+          <button class="chip">头</button>
+          <button class="chip">说不清</button>
+        </div>
+        <div class="surf-actions">
+          <button class="btn btn-primary">我撑过去了</button>
+          <button class="btn-text">暂停 · 我现在就要抽</button>
+        </div>
+      </div>
+      <div class="home-indicator" style="background:#fff;opacity:.85"></div>
+    </div>
+  </figure>
+
+  <!-- 05 TASKS -->
+  <figure class="frame">
+    <figcaption><b>05</b>任务清单 · 选一件小事</figcaption>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">▮▮▮ ⌁ ▰</span></div>
+      <div class="screen no-tabs">
+        <div class="flow-top">
+          <div class="back">←</div>
+          <span class="tiny">2 / 3</span>
+          <div class="close">×</div>
+        </div>
+        <div class="flow-title">
+          <h3>选一件小事，撑 3 分钟</h3>
+          <p>不用做得很标准。动起来、换个场景，就算成功。</p>
+        </div>
+        <div class="task-list">
+          <div class="task">
+            <div class="task-icon">体</div>
+            <div><h4>做 10 个深蹲</h4><p>身体 / 在家、办公室都能做</p></div>
+            <span class="time">2 分钟</span>
+          </div>
+          <div class="task">
+            <div class="task-icon" style="background:#FEF3C7;color:#92400E">手</div>
+            <div><h4>洗把脸 + 收拾桌面</h4><p>手部 / 打断自动动作</p></div>
+            <span class="time">3 分钟</span>
+          </div>
+          <div class="task">
+            <div class="task-icon" style="background:#DBEAFE;color:#1D4ED8">社</div>
+            <div><h4>给朋友发一条消息</h4><p>社交 / 只说“我现在有点想抽”</p></div>
+            <span class="time">2 分钟</span>
+          </div>
+        </div>
+        <div class="flow-actions">
+          <button class="btn btn-ghost">换一组</button>
+          <button class="btn-text">玩一局（2–3 分钟） · 我现在就要抽</button>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </figure>
+
+  <!-- 06 DONE -->
+  <figure class="frame">
+    <figcaption><b>06</b>延迟结束 · 称赞与对比</figcaption>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">▮▮▮ ⌁ ▰</span></div>
+      <div class="screen no-tabs">
+        <div class="flow-top">
+          <div class="back">←</div>
+          <span class="tiny">3 / 3</span>
+          <div class="close">×</div>
+        </div>
+        <div class="done">
+          <div class="done-check">✓</div>
+          <h3>你撑了 10 分钟</h3>
+          <div class="compare-pill">本次 10 分钟 · 上次 8 分钟 <span class="plus">+2 分钟</span></div>
+          <div class="praise">
+            你从 <b>8 分</b>熬到 <b>4 分</b>，用了 10 分钟。呼吸 + 起身走动对你有效——<b>下次渴求再来，你已经有办法了。</b>
+          </div>
+          <div class="scale-label">现在还想抽吗？0–10</div>
+          <div class="scale">
+            <span>0</span><span>1</span><span>2</span><span>3</span><span class="active">4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+          </div>
+        </div>
+        <div class="done-actions">
+          <button class="btn btn-primary">还想抽，再撑一轮</button>
+          <button class="btn btn-ghost" style="margin-top:8px">现在好多了</button>
+          <button class="btn-text">我现在就要抽</button>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </figure>
+
+  <!-- 07 RECORD -->
+  <figure class="frame">
+    <figcaption><b>07</b>记录一支 · 不羞辱</figcaption>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">▮▮▮ ⌁ ▰</span></div>
+      <div class="screen no-tabs">
+        <div class="flow-top">
+          <div class="back">←</div>
+          <span class="tiny">记录</span>
+          <div class="close">×</div>
+        </div>
+        <div class="flow-title">
+          <h3>记录一支，没关系</h3>
+          <p>这不是失败，是数据。记录越准，下一次的建议越有用。</p>
+          <p class="tiny" style="margin-top:6px">如果只是很想抽、还没抽，可以返回继续延迟。</p>
+        </div>
+
+        <div class="section-label" style="margin-left:0">当时是什么触发的？</div>
+        <div class="record-chips">
+          <span class="active">饭后</span><span>压力</span><span>社交</span><span>无聊</span><span>喝酒</span><span>其他</span>
+        </div>
+
+        <div class="section-label" style="margin-left:0">当时的情绪</div>
+        <div class="record-chips">
+          <span>烦</span><span class="active">累</span><span>空</span><span>开心</span><span>没感觉</span>
+        </div>
+
+        <div class="section-label" style="margin-left:0">下一支不抽，可以这样做</div>
+        <div class="if-then">如果饭后想抽，我就立刻刷牙，并出门走 5 分钟。</div>
+
+        <div class="flow-actions">
+          <button class="btn btn-primary">保存并继续</button>
+          <button class="btn-text">跳过详情，只记一支</button>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </figure>
+
+  <!-- 08 MY DELAY -->
+  <figure class="frame">
+    <figcaption><b>08</b>我的延时 · 统计</figcaption>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">▮▮▮ ⌁ ▰</span></div>
+      <div class="screen">
+        <div class="flow-top">
+          <div class="back">←</div>
+          <span class="tiny">我的延时</span>
+          <div class="close" style="visibility:hidden">×</div>
+        </div>
+        <div style="margin-top:14px">
+          <div class="eyebrow">累计延迟</div>
+          <div class="big-stat">76<span>分钟</span></div>
+          <span class="trend">本周比上周 +18 分钟</span>
+        </div>
+        <div class="mini-grid">
+          <div class="mini"><div class="k">最长一次</div><div class="v">10<span>分钟</span></div></div>
+          <div class="mini"><div class="k">平均每次</div><div class="v">6.3<span>分钟</span></div></div>
+          <div class="mini"><div class="k">熬过波数</div><div class="v">18<span>波</span></div></div>
+          <div class="mini"><div class="k">高渴求胜利</div><div class="v">5<span>次</span></div></div>
+        </div>
+        <div class="card" style="margin-top:12px;padding:14px">
+          <div class="row"><h4 style="font-size:12px">最近 7 天</h4><span class="tiny">分钟 / 天</span></div>
+          <div class="bars">
+            <div class="bar"><i style="height:38%"></i><span>一</span></div>
+            <div class="bar"><i style="height:52%"></i><span>二</span></div>
+            <div class="bar"><i style="height:30%"></i><span>三</span></div>
+            <div class="bar"><i style="height:64%"></i><span>四</span></div>
+            <div class="bar"><i style="height:46%"></i><span>五</span></div>
+            <div class="bar"><i style="height:78%"></i><span>六</span></div>
+            <div class="bar today"><i style="height:92%"></i><span>日</span></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:10px;padding:13px 14px">
+          <div class="row"><span class="tiny" style="font-weight:800;color:var(--ink)">最有效方法：快走 5 分钟</span><span class="badge success">基于你的数据</span></div>
+          <p class="tiny" style="margin-top:6px">在 8 次饭后渴求中，有 6 次帮你撑过去了。</p>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>今天</div>
+        <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14M5 12h14M5 19h9"/></svg>记录</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>进展</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-4 4-5.5 7-5.5s5.5 1.5 7 5.5"/></svg>我的</div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </figure>
+
+  <!-- 09 WEEKLY -->
+  <figure class="frame">
+    <figcaption><b>09</b>本周进展 · 周报</figcaption>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">▮▮▮ ⌁ ▰</span></div>
+      <div class="screen">
+        <div class="flow-top">
+          <div class="back">←</div>
+          <span class="tiny">本周进展</span>
+          <div class="close" style="visibility:hidden">×</div>
+        </div>
+        <div style="margin-top:14px">
+          <div class="eyebrow">11 月 7 日 – 11 月 13 日</div>
+          <h3 style="margin-top:4px">这周，你做得不错。</h3>
+        </div>
+        <div class="weekly-grid">
+          <div class="weekly-card"><div class="k">渴求次数</div><div class="v">12</div><div class="d">↓ 3 次</div></div>
+          <div class="weekly-card"><div class="k">延迟时长</div><div class="v">76<span style="font-size:9px;color:var(--muted)"> 分</span></div><div class="d">↑ 18 分</div></div>
+          <div class="weekly-card"><div class="k">无烟天数</div><div class="v">5<span style="font-size:9px;color:var(--muted)"> 天</span></div><div class="d">↑ 1 天</div></div>
+        </div>
+        <div class="card" style="margin-top:12px;padding:14px">
+          <div class="row"><h4 style="font-size:12px">无烟日历</h4><span class="tiny">绿 = 无烟 · 黄 = 记录一支</span></div>
+          <div class="heatmap">
+            <div class="day green"></div><div class="day green"></div><div class="day amber"></div><div class="day green"></div><div class="day green"></div><div class="day gray"></div><div class="day green"></div>
+            <div class="day green"></div><div class="day green"></div><div class="day green"></div><div class="day amber"></div><div class="day green"></div><div class="day green"></div><div class="day green"></div>
+            <div class="day gray"></div><div class="day green"></div><div class="day green"></div><div class="day green"></div><div class="day amber"></div><div class="day green"></div><div class="day green"></div>
+            <div class="day green"></div><div class="day green"></div><div class="day green"></div><div class="day green"></div><div class="day green"></div><div class="day gray"></div><div class="day green"></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:10px;padding:14px">
+          <div class="row"><h4 style="font-size:12px">触发画像</h4><span class="tiny">Top 3</span></div>
+          <div class="trigger-row"><span class="name">饭后</span><div class="track"><i style="width:35%"></i></div><span class="pct">35%</span></div>
+          <div class="trigger-row"><span class="name">压力</span><div class="track"><i style="width:25%"></i></div><span class="pct">25%</span></div>
+          <div class="trigger-row"><span class="name">社交</span><div class="track"><i style="width:20%"></i></div><span class="pct">20%</span></div>
+        </div>
+        <div class="card" style="margin-top:10px;padding:13px 14px;background:var(--teal-soft);border-color:#99F6E4">
+          <p class="tiny" style="color:#115E59;font-weight:700">下周建议：饭后先刷牙 + 走 5 分钟。你已经有 6 次成功记录了。</p>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>今天</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14M5 12h14M5 19h9"/></svg>记录</div>
+        <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>进展</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-4 4-5.5 7-5.5s5.5 1.5 7 5.5"/></svg>我的</div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </figure>
+
+  <!-- 10 SETTINGS -->
+  <figure class="frame">
+    <figcaption><b>10</b>我的 · 设置</figcaption>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">▮▮▮ ⌁ ▰</span></div>
+      <div class="screen">
+        <div class="flow-top">
+          <div class="back" style="visibility:hidden">←</div>
+          <span class="tiny">我的</span>
+          <div class="close" style="visibility:hidden">×</div>
+        </div>
+        <div class="card profile" style="margin-top:10px">
+          <div class="avatar">12</div>
+          <div>
+            <h4>戒烟第 12 天</h4>
+            <p class="tiny">基线 20 支/天 · 烟价 ¥20/包</p>
+          </div>
+        </div>
+
+        <div class="section-label">戒烟设置</div>
+        <div class="list">
+          <div class="item"><span>戒烟日</span><span class="right">2026-11-01</span></div>
+          <div class="item"><span>基线日均支数</span><span class="right">20 支</span></div>
+          <div class="item"><span>烟价</span><span class="right">¥20 / 包</span></div>
+        </div>
+
+        <div class="section-label">鼓励与对比</div>
+        <div class="list">
+          <div class="item"><span>称赞语气</span><span class="right">鼓励型 ›</span></div>
+          <div class="item"><span>显示与上次对比</span><span class="switch"></span></div>
+          <div class="item"><span>低调模式</span><span class="right">关闭</span></div>
+        </div>
+
+        <div class="section-label">数据与隐私</div>
+        <div class="list">
+          <div class="item"><span>匿名研究贡献</span><span class="switch" style="background:#E2E8F0"></span></div>
+          <div class="item"><span>导出数据</span><span class="right">JSON ›</span></div>
+          <div class="item"><span>隐私说明</span><span class="right">本地优先 ›</span></div>
+          <div class="item"><span>清除本地数据</span><span class="right" style="color:#B91C1C">删除 ›</span></div>
+        </div>
+
+        <p class="tiny" style="text-align:center;margin-top:16px">本产品提供行为支持，不构成医疗建议。</p>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>今天</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14M5 12h14M5 19h9"/></svg>记录</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>进展</div>
+        <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-4 4-5.5 7-5.5s5.5 1.5 7 5.5"/></svg>我的</div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </figure>
+
+</main>
+
+<section class="notes">
+  <div class="note"><b>视觉方向</b>冷静、支持、不评判。主色用深青绿，渴求入口用琥珀色强调；避免红色警告和恐吓式文案。</div>
+  <div class="note"><b>交互原则</b>“我现在就要抽”始终可见；不隐藏、不羞辱。延迟最多 3 轮，游戏/任务不设“赢了才能抽”的硬门槛。</div>
+  <div class="note"><b>开发顺序</b>先实现首页、渴求入口、分型、计时、延迟完成卡片；再接记录、统计、周报、设置。</div>
+</section>
+
+</body>
+</html>

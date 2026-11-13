@@ -1,0 +1,15 @@
+# 系统 / 编辑器
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/
+
+# 依赖 / 构建缓存
+node_modules/
+*.log
+*.tmp
+*.part
+
+# 本地导出
+quit-smoking-data-*.json

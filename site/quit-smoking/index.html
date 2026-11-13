@@ -1,0 +1,1517 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F766E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="戒烟">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<title>戒烟 · 先给自己几分钟</title>
+<style>
+  :root{
+    --teal:#0F766E; --teal2:#14B8A6; --teal-soft:#ECFDF5;
+    --amber:#F59E0B; --amber2:#FBBF24; --amber-soft:#FEF3C7;
+    --bg:#F4F7F6; --card:#fff; --ink:#0F172A; --muted:#64748B;
+    --line:#E2E8F0; --green:#10B981; --green-soft:#D1FAE5;
+    --danger:#B91C1C; --shadow:0 8px 28px rgba(15,23,42,.06);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:#E9EFED;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  button,input,select{font-family:inherit}
+  button{cursor:pointer}
+  .num,.timer-time,.big-stat,.stat-value{font-variant-numeric:tabular-nums}
+  .hidden{display:none!important}
+
+  #app{
+    max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);
+    position:relative;padding-bottom:calc(86px + var(--safe-bottom));
+    box-shadow:0 0 40px rgba(15,23,42,.08);
+  }
+  .page{display:none;padding:18px 18px 26px}
+  .page.active{display:block}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-top:4px}
+  .eyebrow{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.04em}
+  h1{margin:4px 0 0;font-size:29px;line-height:1.15;letter-spacing:-.9px}
+  h2{margin:0;font-size:22px;line-height:1.2;letter-spacing:-.5px}
+  h3{margin:0 0 8px;font-size:14px;letter-spacing:-.2px}
+  p{margin:0}
+  .muted{color:var(--muted)}
+  .tiny{font-size:11px;line-height:1.55;color:var(--muted)}
+  .card{background:var(--card);border:1px solid rgba(15,23,42,.06);border-radius:20px;padding:14px 16px;box-shadow:var(--shadow)}
+  .card + .card{margin-top:10px}
+  .icon-btn{width:40px;height:40px;border-radius:14px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;color:var(--muted);padding:0}
+  .icon-btn svg{width:18px;height:18px}
+  .badges{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+  .badge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-size:10px;font-weight:800}
+  .badge.success{background:var(--green-soft);color:#065F46}
+  .badge.soft{background:#F1F5F9;color:#475569}
+  .badge.amber{background:var(--amber-soft);color:#92400E}
+
+  .cta{width:100%;margin-top:15px;border:0;border-radius:19px;padding:17px 20px;font-size:17px;font-weight:900;color:#3B1D00;background:linear-gradient(135deg,var(--amber2),var(--amber));box-shadow:0 12px 26px rgba(245,158,11,.3);display:flex;align-items:center;justify-content:center;gap:10px}
+  .pulse{width:9px;height:9px;border-radius:50%;background:#7C2D12;box-shadow:0 0 0 6px rgba(124,45,18,.12)}
+
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .stat{background:#fff;border:1px solid rgba(15,23,42,.06);border-radius:18px;padding:12px 14px;box-shadow:0 4px 16px rgba(15,23,42,.04)}
+  .stat-label{font-size:10px;color:var(--muted);font-weight:800}
+  .stat-value{font-size:25px;font-weight:900;letter-spacing:-1px;margin-top:4px}
+  .stat-value span{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:0;margin-left:2px}
+  .stat-sub{font-size:10px;color:#94A3B8;margin-top:2px}
+
+  .progress{height:8px;border-radius:999px;background:#E2E8F0;overflow:hidden}
+  .progress i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--teal),var(--teal2));transition:width .4s ease}
+  .milestone{margin-top:10px;padding:13px 15px}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .milestone .row{margin-bottom:8px}
+  .milestone .label{font-size:11px;font-weight:800}
+  .milestone .value{font-size:11px;color:var(--muted);font-weight:700}
+
+  .insight{margin-top:10px;display:flex;gap:11px;align-items:flex-start;padding:12px 14px}
+  .insight-icon{width:38px;height:38px;border-radius:13px;background:var(--amber-soft);color:#92400E;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;flex:0 0 38px}
+  .insight h4{font-size:12px;margin-bottom:3px}
+  .insight p{font-size:11px;line-height:1.5;color:var(--muted)}
+  .fund{margin-top:10px;padding:12px 14px}
+  .fund .row{margin-bottom:7px}
+  .fund .amount{font-size:12px;font-weight:800}
+  .fund .goal{font-size:11px;color:var(--muted)}
+
+  .tabbar{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:480px;height:calc(74px + var(--safe-bottom));background:rgba(255,255,255,.97);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 8px calc(8px + var(--safe-bottom));z-index:30}
+  .tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;background:transparent;color:#94A3B8;font-size:10px;font-weight:700;padding:0}
+  .tab.active{color:var(--teal)}
+  .tab svg{width:21px;height:21px}
+
+  .btn{width:100%;border:0;border-radius:16px;padding:15px 18px;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn + .btn{margin-top:8px}
+  .btn-primary{background:var(--teal);color:#fff;box-shadow:0 10px 24px rgba(15,118,110,.22)}
+  .btn-amber{background:linear-gradient(135deg,var(--amber2),var(--amber));color:#3B1D00;box-shadow:0 10px 24px rgba(245,158,11,.25)}
+  .btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .btn-soft{background:var(--teal-soft);color:var(--teal);border:1px solid #99F6E4}
+  .btn-danger{background:#FEF2F2;color:var(--danger);border:1px solid #FECACA}
+  .btn-text{width:100%;border:0;background:transparent;color:var(--muted);font-size:13px;padding:13px 0}
+  .btn-small{border:0;border-radius:999px;background:var(--teal);color:#fff;font-size:12px;font-weight:800;padding:9px 13px}
+
+  .sheet-wrap{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;background:rgba(15,23,42,.48)}
+  .sheet{width:100%;max-width:480px;background:#fff;border-radius:28px 28px 0 0;padding:10px 20px calc(24px + var(--safe-bottom));box-shadow:0 -22px 50px rgba(15,23,42,.18);max-height:92vh;overflow:auto}
+  .handle{width:40px;height:5px;border-radius:999px;background:#CBD5E1;margin:0 auto 14px}
+  .option{width:100%;border:1px solid var(--line);background:#fff;border-radius:16px;padding:14px 15px;font-size:14px;font-weight:800;display:flex;justify-content:space-between;align-items:center;margin-top:9px;color:var(--ink);text-align:left}
+  .option.primary{background:var(--teal-soft);border-color:#99F6E4;color:var(--teal)}
+  .option .tag{font-size:10px;background:var(--teal);color:#fff;padding:3px 7px;border-radius:999px}
+  .option .arrow{color:#94A3B8;font-weight:700}
+
+  .overlay{position:fixed;inset:0;z-index:55;display:flex;align-items:flex-end;justify-content:center;background:rgba(15,23,42,.5)}
+  .overlay.full{align-items:stretch}
+  .flow-page{width:100%;max-width:480px;background:var(--bg);padding:18px 18px calc(24px + var(--safe-bottom));overflow-y:auto;min-height:100%}
+  .flow-top{display:flex;justify-content:space-between;align-items:center;padding:2px 0 4px}
+  .flow-top button{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0}
+  .flow-title{margin-top:10px}
+  .flow-title h2{font-size:24px}
+  .flow-title p{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.55}
+
+  .triage-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+  .triage-card{background:#fff;border:1px solid rgba(15,23,42,.07);border-radius:18px;padding:12px;min-height:92px;box-shadow:0 4px 16px rgba(15,23,42,.04);text-align:left}
+  .triage-card.selected{border-color:var(--teal);box-shadow:0 0 0 2px rgba(15,118,110,.15)}
+  .triage-icon{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900}
+  .triage-card h4{font-size:13px;margin-top:9px}
+  .triage-card p{font-size:10px;line-height:1.45;color:var(--muted);margin-top:3px}
+  .intensity{margin-top:12px}
+  .intensity .lab{font-size:11px;font-weight:800;color:var(--muted);margin-bottom:7px}
+  .intensity .opts{display:flex;gap:6px}
+  .intensity .opts button{flex:1;border:1px solid var(--line);border-radius:10px;background:#fff;padding:9px 0;font-size:11px;font-weight:700;color:var(--muted)}
+  .intensity .opts button.on{background:var(--amber-soft);border-color:#FCD34D;color:#92400E}
+  .flow-actions{margin-top:18px}
+  .flow-actions.bottom{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(244,247,246,0),var(--bg) 30%);padding-top:16px}
+
+  .timer-page{background:radial-gradient(120% 80% at 50% 0%,#115E59 0%,#0B3B36 55%,#082F2B 100%);color:#fff;display:flex;flex-direction:column}
+  .timer-page .flow-top button{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#fff}
+  .timer-wrap{width:240px;height:240px;border-radius:50%;border:7px solid rgba(255,255,255,.16);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:26px auto 0;position:relative}
+  .timer-wrap::before{content:"";position:absolute;inset:8px;border-radius:50%;border:2px solid rgba(20,184,166,.45)}
+  .timer-time{font-size:54px;font-weight:900;letter-spacing:-2px}
+  .timer-label{font-size:10px;letter-spacing:.12em;opacity:.65;margin-top:2px}
+  .timer-page h2{text-align:center;margin-top:20px;font-size:23px}
+  .timer-guide{text-align:center;font-size:12px;line-height:1.65;opacity:.78;margin:8px auto 0;max-width:310px}
+  .timer-track{height:6px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:26px}
+  .timer-track i{display:block;height:100%;background:#fff;border-radius:999px;width:100%;transition:width 1s linear}
+  .timer-page .btn-primary{background:#fff;color:#0B3B36;box-shadow:none}
+  .timer-page .btn-ghost{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff}
+  .timer-page .btn-text{color:rgba(255,255,255,.65)}
+  .timer-page .tiny{color:rgba(255,255,255,.55)}
+
+  .task-list{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+  .task{background:#fff;border:1px solid rgba(15,23,42,.07);border-radius:18px;padding:14px;display:flex;gap:12px;align-items:center;text-align:left;box-shadow:0 4px 16px rgba(15,23,42,.04)}
+  .task-icon{width:42px;height:42px;border-radius:14px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex:0 0 42px}
+  .task h4{font-size:13px}
+  .task p{font-size:10px;color:var(--muted);margin-top:3px}
+  .task .time{margin-left:auto;font-size:10px;color:#94A3B8;font-weight:700;white-space:nowrap}
+
+  .done-page{text-align:center}
+  .done-check{width:82px;height:82px;border-radius:50%;background:var(--green-soft);color:#059669;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:900;margin:18px auto 14px}
+  .done-page h2{font-size:28px}
+  .compare-pill{display:inline-flex;align-items:center;gap:7px;background:var(--teal-soft);color:#047857;padding:8px 12px;border-radius:999px;font-size:11px;font-weight:800;margin-top:10px;flex-wrap:wrap;justify-content:center}
+  .compare-pill .plus{background:#059669;color:#fff;border-radius:999px;padding:2px 6px;font-size:10px}
+  .praise{background:#F8FAFC;border:1px solid var(--line);border-radius:18px;padding:15px;font-size:13px;line-height:1.7;text-align:left;margin-top:16px}
+  .praise b{color:var(--teal)}
+  .scale-label{text-align:left;font-size:10px;color:var(--muted);font-weight:800;margin:16px 0 7px}
+  .scale{display:flex;gap:5px}
+  .scale button{flex:1;height:34px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:10px;font-weight:700}
+  .scale button.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+
+  .record-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+  .record-chips button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 11px;font-size:11px;color:var(--muted);font-weight:700}
+  .record-chips button.active{background:var(--amber-soft);border-color:#FCD34D;color:#92400E}
+  .if-then{background:var(--teal-soft);border:1px dashed #99F6E4;border-radius:16px;padding:13px 14px;font-size:12px;line-height:1.65;color:#115E59;margin-top:10px}
+  .section-label{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:.08em;margin:16px 0 0;text-transform:uppercase}
+
+  .big-stat{font-size:42px;font-weight:900;letter-spacing:-2px}
+  .big-stat span{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:0;margin-left:4px}
+  .trend{display:inline-block;font-size:10px;font-weight:800;color:#047857;background:var(--teal-soft);padding:4px 8px;border-radius:999px;margin-top:4px}
+  .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+  .mini{background:#fff;border:1px solid rgba(15,23,42,.06);border-radius:16px;padding:12px}
+  .mini .k{font-size:10px;color:var(--muted);font-weight:800}
+  .mini .v{font-size:20px;font-weight:900;margin-top:3px;letter-spacing:-.6px}
+  .mini .v span{font-size:10px;color:var(--muted);font-weight:700}
+  .bars{display:flex;align-items:flex-end;gap:9px;height:112px;margin-top:14px}
+  .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+  .bar i{display:block;width:100%;border-radius:7px 7px 4px 4px;background:#CCFBF1;min-height:4px}
+  .bar.today i{background:linear-gradient(180deg,var(--teal2),var(--teal))}
+  .bar span{font-size:10px;color:#94A3B8;font-weight:700}
+  .heatmap{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+  .day{aspect-ratio:1;border-radius:6px;background:#E2E8F0}
+  .day.green{background:#34D399}.day.amber{background:#FBBF24}.day.gray{background:#E2E8F0}
+  .trigger-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .trigger-row .name{width:54px;font-size:11px;color:var(--muted);font-weight:800}
+  .trigger-row .track{flex:1;height:7px;border-radius:999px;background:#F1F5F9;overflow:hidden}
+  .trigger-row .track i{display:block;height:100%;border-radius:999px;background:var(--amber)}
+  .trigger-row .pct{width:34px;text-align:right;font-size:11px;color:var(--muted);font-weight:800}
+  .empty{padding:18px 0;text-align:center;color:var(--muted);font-size:12px;line-height:1.6}
+
+  .game-area{position:relative;height:320px;border-radius:22px;background:linear-gradient(160deg,#0F766E,#0B3B36);overflow:hidden;margin-top:16px;box-shadow:inset 0 0 40px rgba(0,0,0,.12)}
+  .bubble{position:absolute;width:46px;height:46px;border-radius:50%;border:0;background:radial-gradient(circle at 35% 30%,#FDE68A,#F59E0B);color:#7C2D12;font-size:18px;font-weight:900;box-shadow:0 6px 18px rgba(0,0,0,.2);touch-action:manipulation}
+  .game-hud{display:flex;justify-content:center;gap:18px;margin-top:12px;font-size:12px;font-weight:800;color:var(--muted)}
+  .game-hud b{color:var(--teal);font-size:16px}
+
+  .check-card{display:flex;gap:11px;align-items:flex-start;padding:14px;border:1px solid var(--line);border-radius:16px;background:#fff;margin-top:10px}
+  .check-card input{width:22px;height:22px;flex:0 0 22px;accent-color:var(--teal);margin:1px 0 0}
+  .check-card h4{font-size:12px}
+  .check-card p{font-size:10px;color:var(--muted);line-height:1.5;margin-top:3px}
+  .brand{display:flex;align-items:center;gap:10px;margin-top:6px}
+  .brand-mark{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900}
+  .note-box{background:#F8FAFC;border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-top:10px}
+  .field{margin-top:12px}
+  .field label{display:block;font-size:11px;color:var(--muted);font-weight:800;margin-bottom:6px}
+  .field input,.field select{width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;padding:12px 13px;font-size:14px;color:var(--ink)}
+  .row-card{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;border-bottom:1px solid #F1F5F9;font-size:13px;font-weight:700}
+  .row-card:last-child{border-bottom:0}
+  .row-card .right{color:var(--muted);font-size:11px;font-weight:600}
+  .row-card input[type=checkbox]{width:22px;height:22px;accent-color:var(--teal)}
+  .list-card{background:#fff;border:1px solid rgba(15,23,42,.06);border-radius:20px;overflow:hidden;margin-top:12px}
+
+  .toast{position:fixed;left:50%;bottom:calc(96px + var(--safe-bottom));transform:translateX(-50%) translateY(12px);background:#0F172A;color:#fff;padding:10px 14px;border-radius:12px;font-size:12px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:360px;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:380px){
+    .page{padding-left:14px;padding-right:14px}
+    .flow-page{padding-left:14px;padding-right:14px}
+    .stat-value{font-size:22px}
+    h1{font-size:26px}
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- 00 知情同意 -->
+  <section id="page-onboarding" class="page">
+    <div class="brand">
+      <div class="brand-mark">戒</div>
+      <div>
+        <div class="eyebrow">戒烟 PWA</div>
+        <h3 style="margin-top:2px">先把数据怎么用说清楚</h3>
+      </div>
+    </div>
+    <div class="flow-title">
+      <h1>开始之前，先约定三件事</h1>
+      <p>你可以随时退出、导出或删除数据。我们不会出售你的健康数据。</p>
+    </div>
+
+    <label class="check-card">
+      <input type="checkbox" id="consent-local">
+      <span>
+        <h4>在本机保存戒烟数据</h4>
+        <p>用于倒计时、延迟记录、统计和提醒。默认只存本地，不上传。</p>
+      </span>
+    </label>
+
+    <label class="check-card">
+      <input type="checkbox" id="consent-research">
+      <span>
+        <h4>匿名贡献使用数据（可选）</h4>
+        <p>只上传去标识化的事件，用于分析哪种转移注意力的方法对更多人有效。可随时关闭。</p>
+      </span>
+    </label>
+
+    <div class="note-box">
+      <h3 style="font-size:12px">不是医疗建议</h3>
+      <p class="tiny">药物和戒断处理请咨询医生或戒烟门诊；紧急情况请联系专业机构。</p>
+    </div>
+
+    <div class="flow-actions">
+      <button class="btn btn-primary" data-action="onboarding-next">开始设置</button>
+      <button class="btn-text" data-action="onboarding-next">先看看，不授权研究数据</button>
+    </div>
+  </section>
+
+  <!-- 设置 -->
+  <section id="page-setup" class="page">
+    <div class="flow-title">
+      <h1>设置你的戒烟计划</h1>
+      <p>这些数字只用来估算少抽支数和省钱，之后可以改。</p>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="field">
+        <label>戒烟日</label>
+        <input type="date" id="setup-quit">
+      </div>
+      <div class="field">
+        <label>戒烟前每天抽多少支</label>
+        <input type="number" id="setup-baseline" min="0" step="1" value="20">
+      </div>
+      <div class="field">
+        <label>烟价（元 / 包）</label>
+        <input type="number" id="setup-price" min="0" step="0.5" value="20">
+      </div>
+      <div class="field">
+        <label>每包多少支</label>
+        <input type="number" id="setup-pack" min="1" step="1" value="20">
+      </div>
+      <div class="field">
+        <label>戒烟基金目标（元）</label>
+        <input type="number" id="setup-goal" min="0" step="10" value="1500">
+      </div>
+    </div>
+    <div class="flow-actions">
+      <button class="btn btn-primary" data-action="setup-finish">开始使用</button>
+    </div>
+    <p class="tiny" style="text-align:center;margin-top:12px">本产品提供行为支持，不构成医疗建议。</p>
+  </section>
+
+  <!-- 首页 -->
+  <section id="page-home" class="page">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow" id="home-date">今天</div>
+        <h1>戒烟第 <span id="home-days">1</span> 天</h1>
+      </div>
+      <button class="icon-btn" data-action="tab" data-page="settings" aria-label="设置">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
+      </button>
+    </div>
+    <div class="badges">
+      <span class="badge success" id="home-badge">今天无烟</span>
+      <span class="badge soft" id="home-total">累计无烟 1 天</span>
+    </div>
+
+    <button class="cta" data-action="open-craving"><span class="pulse"></span>我现在想抽烟</button>
+
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-label">估算少抽</div>
+        <div class="stat-value"><span id="stat-avoided">0</span><span>支</span></div>
+        <div class="stat-sub">按已完成天数</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">估算省下</div>
+        <div class="stat-value" id="stat-money">¥0</div>
+        <div class="stat-sub">只算烟钱</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">延迟总时长</div>
+        <div class="stat-value"><span id="stat-delay">0</span><span>分钟</span></div>
+        <div class="stat-sub">累计</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">熬过波数</div>
+        <div class="stat-value"><span id="stat-waves">0</span><span>波</span></div>
+        <div class="stat-sub" id="stat-waves-sub">其中高渴求 0 次</div>
+      </div>
+    </div>
+
+    <div class="card milestone">
+      <div class="row">
+        <span class="label" id="milestone-label">下一个里程碑</span>
+        <span class="value" id="milestone-value">还有 1 天</span>
+      </div>
+      <div class="progress"><i id="milestone-bar" style="width:0%"></i></div>
+    </div>
+
+    <div class="card insight">
+      <div class="insight-icon">!</div>
+      <div>
+        <h4>今日洞察</h4>
+        <p id="insight-text">今天先记录一次，就能开始看到你的触发规律。</p>
+      </div>
+    </div>
+
+    <div class="card fund">
+      <div class="row">
+        <span class="amount" id="fund-amount">戒烟基金 ¥0</span>
+        <span class="goal" id="fund-goal">目标 ¥1,500</span>
+      </div>
+      <div class="progress"><i id="fund-bar" style="width:0%"></i></div>
+    </div>
+  </section>
+
+  <!-- 记录 -->
+  <section id="page-record" class="page">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">记录</div>
+        <h1>今天的记录</h1>
+      </div>
+      <button class="btn-small" data-action="open-record">+ 记录一支</button>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="row">
+        <span class="tiny" style="font-weight:800;color:var(--ink)">今天</span>
+        <span class="tiny" id="record-today">还没有记录</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>最近</h3>
+      <div id="record-list"></div>
+    </div>
+    <p class="tiny" style="margin-top:12px">记录一支不是失败，是数据。记录越准，下一次的建议越有用。</p>
+  </section>
+
+  <!-- 进展 -->
+  <section id="page-progress" class="page">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">进展</div>
+        <h1>你在变好</h1>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="eyebrow">累计延迟</div>
+      <div class="big-stat"><span id="progress-total">0</span><span>分钟</span></div>
+      <span class="trend" id="progress-trend">本周 0 分钟</span>
+    </div>
+
+    <div class="mini-grid">
+      <div class="mini"><div class="k">最长一次</div><div class="v"><span id="progress-longest">0</span><span> 分钟</span></div></div>
+      <div class="mini"><div class="k">平均每次</div><div class="v"><span id="progress-average">0</span><span> 分钟</span></div></div>
+      <div class="mini"><div class="k">熬过波数</div><div class="v"><span id="progress-waves">0</span><span> 波</span></div></div>
+      <div class="mini"><div class="k">高渴求胜利</div><div class="v"><span id="progress-high">0</span><span> 次</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="row"><h3 style="margin:0">最近 7 天</h3><span class="tiny">分钟 / 天</span></div>
+      <div class="bars" id="progress-bars"></div>
+    </div>
+
+    <div class="card">
+      <div class="row"><h3 style="margin:0">无烟日历</h3><span class="tiny">绿 = 无烟 · 黄 = 记录一支</span></div>
+      <div class="heatmap" id="heatmap"></div>
+    </div>
+
+    <div class="card">
+      <h3>触发画像</h3>
+      <div id="trigger-list"></div>
+    </div>
+  </section>
+
+  <!-- 设置 -->
+  <section id="page-settings" class="page">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">我的</div>
+        <h1>设置</h1>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="field">
+        <label>戒烟日</label>
+        <input type="date" id="set-quit">
+      </div>
+      <div class="field">
+        <label>基线日均支数</label>
+        <input type="number" id="set-baseline" min="0" step="1">
+      </div>
+      <div class="field">
+        <label>烟价（元 / 包）</label>
+        <input type="number" id="set-price" min="0" step="0.5">
+      </div>
+      <div class="field">
+        <label>每包多少支</label>
+        <input type="number" id="set-pack" min="1" step="1">
+      </div>
+      <div class="field">
+        <label>戒烟基金目标（元）</label>
+        <input type="number" id="set-goal" min="0" step="10">
+      </div>
+    </div>
+
+    <div class="list-card">
+      <div class="row-card">
+        <span>称赞语气</span>
+        <select id="set-tone" style="width:120px;border:1px solid var(--line);border-radius:10px;padding:7px;background:#fff;font-size:12px">
+          <option value="encouraging">鼓励型</option>
+          <option value="lowkey">低调</option>
+        </select>
+      </div>
+      <label class="row-card">
+        <span>显示与上次对比</span>
+        <input type="checkbox" id="set-compare">
+      </label>
+      <label class="row-card">
+        <span>匿名研究贡献</span>
+        <input type="checkbox" id="set-research">
+      </label>
+    </div>
+
+    <button class="btn btn-primary" style="margin-top:14px" data-action="save-settings">保存设置</button>
+    <button class="btn btn-ghost" style="margin-top:8px" data-action="export">导出数据（JSON）</button>
+    <button class="btn btn-danger" style="margin-top:8px" data-action="reset">清除本地数据</button>
+    <p class="tiny" style="text-align:center;margin-top:14px">本产品提供行为支持，不构成医疗建议。<br>版本 <span id="app-version">1.0.0</span></p>
+  </section>
+
+  <!-- 底部导航 -->
+  <nav id="tabbar" class="tabbar hidden">
+    <button class="tab active" data-action="tab" data-page="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>
+      今天
+    </button>
+    <button class="tab" data-action="tab" data-page="record">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14M5 12h14M5 19h9"/></svg>
+      记录
+    </button>
+    <button class="tab" data-action="tab" data-page="progress">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>
+      进展
+    </button>
+    <button class="tab" data-action="tab" data-page="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-4 4-5.5 7-5.5s5.5 1.5 7 5.5"/></svg>
+      我的
+    </button>
+  </nav>
+</div>
+
+<div id="overlay" class="overlay hidden"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'quit-smoking.state.v1';
+  var APP_VERSION = '1.0.0';
+  var MILESTONES = [
+    { days: 1, label: '24 小时' },
+    { days: 3, label: '3 天' },
+    { days: 7, label: '1 周' },
+    { days: 14, label: '2 周' },
+    { days: 30, label: '1 个月' },
+    { days: 90, label: '3 个月' },
+    { days: 180, label: '6 个月' },
+    { days: 365, label: '1 年' }
+  ];
+  var TASK_POOL = [
+    { id: 'squat', label: '做 10 个深蹲', type: '身体', desc: '在家、办公室都能做' },
+    { id: 'wash', label: '洗把脸 + 收拾桌面', type: '手部', desc: '打断自动动作' },
+    { id: 'message', label: '给朋友发一条消息', type: '社交', desc: '只说“我现在有点想抽”' },
+    { id: 'water', label: '喝一杯水，慢慢喝完', type: '口腔', desc: '给嘴和手找点事' },
+    { id: 'walk', label: '出门走 5 分钟', type: '身体', desc: '换场景，快走' },
+    { id: 'breathe', label: '做 10 次深呼吸', type: '身体', desc: '4 秒吸、6 秒呼' }
+  ];
+  var TYPE_META = [
+    { key: '习惯 / 自动化', short: '习', bg: '#F1F5F9', color: '#475569', desc: '手自动就去拿了，没怎么想' },
+    { key: '情绪 / 压力', short: '情', bg: '#FEF3C7', color: '#92400E', desc: '烦、焦虑、想放松一下' },
+    { key: '社交 / 递烟', short: '社', bg: '#DBEAFE', color: '#1D4ED8', desc: '别人递给我，或大家都在抽' },
+    { key: '戒断 / 生理', short: '戒', bg: '#FCE7F3', color: '#9D174D', desc: '心慌、坐立不安、注意力散' },
+    { key: '无聊 / 空虚', short: '无', bg: '#EDE9FE', color: '#6D28D9', desc: '没事干，就想点一支' },
+    { key: '线索 / 条件反射', short: '线', bg: '#DCFCE7', color: '#166534', desc: '饭后、咖啡、酒、开车、电话' }
+  ];
+
+  var state = null;
+  var flow = null;
+  var recordDraft = { trigger: '', emotion: '' };
+  var toastTimer = null;
+
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function dateKey(ts) {
+    var d = new Date(ts);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function parseDate(iso) {
+    var p = String(iso || '').split('-');
+    return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  }
+  function daysSince(iso) {
+    var q = parseDate(iso);
+    var t = parseDate(todayISO());
+    return Math.max(0, Math.floor((t.getTime() - q.getTime()) / 86400000));
+  }
+  function fmtMin(sec) {
+    sec = Math.max(0, Math.round(sec));
+    if (sec < 60) return sec + ' 秒';
+    return Math.round(sec / 60) + ' 分钟';
+  }
+  function fmtMoney(n) {
+    if (n >= 100) return '¥' + Math.round(n).toLocaleString('zh-CN');
+    return '¥' + (Math.round(n * 10) / 10).toFixed(n % 1 === 0 ? 0 : 1);
+  }
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function toast(msg) {
+    var el = $('#toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove('show'); }, 2600);
+  }
+
+  function defaultState() {
+    return {
+      version: 1,
+      onboarded: false,
+      consentLocal: false,
+      researchOptIn: false,
+      settings: {
+        quitDate: todayISO(),
+        baseline: 20,
+        packPrice: 20,
+        cigsPerPack: 20,
+        savingsGoal: 1500,
+        praiseTone: 'encouraging',
+        showCompare: true
+      },
+      episodes: [],
+      rounds: [],
+      cigarettes: [],
+      createdAt: Date.now()
+    };
+  }
+
+  function normalizeState(obj) {
+    var base = defaultState();
+    var s = Object.assign({}, base, obj || {});
+    s.settings = Object.assign({}, base.settings, (obj && obj.settings) || {});
+    s.episodes = Array.isArray(s.episodes) ? s.episodes : [];
+    s.rounds = Array.isArray(s.rounds) ? s.rounds : [];
+    s.cigarettes = Array.isArray(s.cigarettes) ? s.cigarettes : [];
+    s.researchOptIn = !!s.researchOptIn;
+    s.onboarded = !!s.onboarded;
+    return s;
+  }
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      return normalizeState(JSON.parse(raw));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* storage full */ }
+  }
+
+  function getStats() {
+    var fullDays = daysSince(state.settings.quitDate); // 已完成的整天；首日为 0
+    var days = fullDays + 1; // 戒烟旅程第 X 天（含今天）
+    var smoked = state.cigarettes.length;
+    var baseline = Number(state.settings.baseline) || 0;
+    var avoided = Math.max(0, baseline * fullDays - smoked);
+    var packSize = Math.max(1, Number(state.settings.cigsPerPack) || 20);
+    var perCig = (Number(state.settings.packPrice) || 0) / packSize;
+    var money = avoided * perCig;
+    var delaySec = state.rounds.reduce(function (a, r) { return a + (Number(r.durationSec) || 0); }, 0);
+    var waves = state.rounds.filter(function (r) { return r.completed; }).length;
+    var high = state.rounds.filter(function (r) {
+      return r.completed && Number(r.intensityBefore) >= 7 && Number(r.durationSec) >= 180;
+    }).length;
+    var last = state.rounds.filter(function (r) { return r.completed; })
+      .sort(function (a, b) { return b.endedAt - a.endedAt; })[0] || null;
+    var smokedDates = {};
+    state.cigarettes.forEach(function (c) { smokedDates[dateKey(c.ts)] = true; });
+    var smokeFreeDays = 0;
+    for (var i = 0; i < fullDays; i++) {
+      var d = new Date(parseDate(state.settings.quitDate).getTime() + i * 86400000);
+      var key = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+      if (!smokedDates[key]) smokeFreeDays++;
+    }
+    return {
+      days: days, smoked: smoked, avoided: avoided, money: money,
+      delaySec: delaySec, waves: waves, high: high, last: last,
+      smokeFreeDays: smokeFreeDays
+    };
+  }
+
+  function nextMilestone(days) {
+    var next = null, prev = null;
+    for (var i = 0; i < MILESTONES.length; i++) {
+      if (MILESTONES[i].days > days) { next = MILESTONES[i]; break; }
+      prev = MILESTONES[i];
+    }
+    if (!next) return { label: '1 年+', value: '已达成', progress: 100 };
+    var from = prev ? prev.days : 0;
+    var span = next.days - from;
+    var done = days - from;
+    return {
+      label: next.label,
+      value: '还有 ' + (next.days - days) + ' 天',
+      progress: Math.max(0, Math.min(100, Math.round(done / span * 100)))
+    };
+  }
+
+  function topTrigger() {
+    var counts = {};
+    state.cigarettes.forEach(function (c) {
+      if (c.trigger) counts[c.trigger] = (counts[c.trigger] || 0) + 1;
+    });
+    var best = null;
+    Object.keys(counts).forEach(function (k) {
+      if (!best || counts[k] > counts[best]) best = k;
+    });
+    return best;
+  }
+
+  function renderHome() {
+    var s = getStats();
+    var ms = nextMilestone(s.days);
+    var todaySmoked = state.cigarettes.filter(function (c) { return dateKey(c.ts) === todayISO(); }).length;
+
+    $('#home-date').textContent = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
+    $('#home-days').textContent = s.days;
+    $('#home-badge').textContent = todaySmoked > 0 ? '今天已记录' : '今天无烟';
+    $('#home-badge').className = 'badge ' + (todaySmoked > 0 ? 'amber' : 'success');
+    $('#home-total').textContent = '累计无烟 ' + s.smokeFreeDays + ' 天';
+
+    $('#stat-avoided').textContent = Math.round(s.avoided);
+    $('#stat-money').textContent = fmtMoney(s.money);
+    $('#stat-delay').textContent = Math.round(s.delaySec / 60);
+    $('#stat-waves').textContent = s.waves;
+    $('#stat-waves-sub').textContent = '其中高渴求 ' + s.high + ' 次';
+
+    $('#milestone-label').textContent = '下一个里程碑：' + ms.label;
+    $('#milestone-value').textContent = ms.value;
+    $('#milestone-bar').style.width = ms.progress + '%';
+
+    var top = topTrigger();
+    $('#insight-text').textContent = top
+      ? '最近最常见的触发是「' + top + '」。下次先准备一个替代动作。'
+      : '今天先记录一次，就能开始看到你的触发规律。';
+
+    var goal = Math.max(1, Number(state.settings.savingsGoal) || 0);
+    var pct = Math.max(0, Math.min(100, Math.round(s.money / goal * 100)));
+    $('#fund-amount').textContent = '戒烟基金 ' + fmtMoney(s.money);
+    $('#fund-goal').textContent = '目标 ' + fmtMoney(goal);
+    $('#fund-bar').style.width = pct + '%';
+  }
+
+  function renderRecord() {
+    var todayCigs = state.cigarettes.filter(function (c) { return dateKey(c.ts) === todayISO(); });
+    var todayRounds = state.rounds.filter(function (r) { return dateKey(r.endedAt) === todayISO(); });
+    $('#record-today').textContent = todayCigs.length || todayRounds.length
+      ? '记录 ' + todayCigs.length + ' 支 · 延迟 ' + todayRounds.length + ' 次'
+      : '还没有记录';
+
+    var items = [];
+    state.cigarettes.forEach(function (c) {
+      items.push({ ts: c.ts, label: '记录一支', sub: c.trigger || '未选触发', kind: 'cig' });
+    });
+    state.rounds.forEach(function (r) {
+      if (!r.completed) return;
+      items.push({
+        ts: r.endedAt,
+        label: '延迟 ' + fmtMin(r.durationSec),
+        sub: (r.taskLabel || '延迟') + (r.intensityAfter != null ? ' · 渴求 ' + r.intensityBefore + '→' + r.intensityAfter : ''),
+        kind: 'round'
+      });
+    });
+    items.sort(function (a, b) { return b.ts - a.ts; });
+    items = items.slice(0, 30);
+
+    if (!items.length) {
+      $('#record-list').innerHTML = '<div class="empty">还没有记录。<br>下一次想抽时，点首页的按钮。</div>';
+      return;
+    }
+    $('#record-list').innerHTML = items.map(function (it) {
+      var d = new Date(it.ts);
+      var time = (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+      var color = it.kind === 'cig' ? '#B45309' : '#0F766E';
+      return '<div style="display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #F1F5F9">'
+        + '<div><div style="font-size:12px;font-weight:800;color:' + color + '">' + escapeHtml(it.label) + '</div>'
+        + '<div class="tiny">' + escapeHtml(it.sub) + '</div></div>'
+        + '<div class="tiny" style="white-space:nowrap">' + time + '</div></div>';
+    }).join('');
+  }
+
+  function lastNDates(n) {
+    var arr = [];
+    var now = new Date();
+    for (var i = n - 1; i >= 0; i--) {
+      var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      arr.push(d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()));
+    }
+    return arr;
+  }
+  function weekdayLabel(iso) {
+    var labels = ['日', '一', '二', '三', '四', '五', '六'];
+    return labels[parseDate(iso).getDay()];
+  }
+
+  function renderProgress() {
+    var s = getStats();
+    var avg = state.rounds.filter(function (r) { return r.completed; }).length
+      ? s.delaySec / state.rounds.filter(function (r) { return r.completed; }).length : 0;
+    var longest = state.rounds.reduce(function (a, r) { return Math.max(a, Number(r.durationSec) || 0); }, 0);
+    $('#progress-total').textContent = Math.round(s.delaySec / 60);
+    $('#progress-longest').textContent = Math.round(longest / 60);
+    $('#progress-average').textContent = (Math.round(avg / 6) / 10).toFixed(1);
+    $('#progress-waves').textContent = s.waves;
+    $('#progress-high').textContent = s.high;
+
+    var days = lastNDates(7);
+    var values = days.map(function (d) {
+      return state.rounds.filter(function (r) { return dateKey(r.endedAt) === d; })
+        .reduce(function (a, r) { return a + (Number(r.durationSec) || 0); }, 0) / 60;
+    });
+    var max = Math.max(1, Math.max.apply(null, values));
+    $('#progress-bars').innerHTML = days.map(function (d, i) {
+      var h = Math.max(6, Math.round(values[i] / max * 100));
+      return '<div class="bar ' + (d === todayISO() ? 'today' : '') + '"><i style="height:' + h + '%"></i><span>' + weekdayLabel(d) + '</span></div>';
+    }).join('');
+    var weekTotal = values.reduce(function (a, b) { return a + b; }, 0);
+    $('#progress-trend').textContent = '本周 ' + Math.round(weekTotal) + ' 分钟';
+
+    var dates = lastNDates(28);
+    $('#heatmap').innerHTML = dates.map(function (d) {
+      var smoked = state.cigarettes.some(function (c) { return dateKey(c.ts) === d; });
+      var inRange = d >= state.settings.quitDate;
+      var cls = !inRange ? 'gray' : (smoked ? 'amber' : 'green');
+      return '<div class="day ' + cls + '" title="' + d + '"></div>';
+    }).join('');
+
+    var counts = {};
+    state.cigarettes.forEach(function (c) {
+      if (c.trigger) counts[c.trigger] = (counts[c.trigger] || 0) + 1;
+    });
+    var entries = Object.keys(counts).map(function (k) { return { name: k, n: counts[k] }; })
+      .sort(function (a, b) { return b.n - a.n; }).slice(0, 3);
+    if (!entries.length) {
+      $('#trigger-list').innerHTML = '<div class="empty">还没有足够的触发数据。<br>记录几次后，这里会显示你的高频场景。</div>';
+    } else {
+      var total = entries.reduce(function (a, e) { return a + e.n; }, 0);
+      $('#trigger-list').innerHTML = entries.map(function (e) {
+        var pct = Math.round(e.n / total * 100);
+        return '<div class="trigger-row"><span class="name">' + escapeHtml(e.name) + '</span>'
+          + '<span class="track"><i style="width:' + pct + '%"></i></span>'
+          + '<span class="pct">' + pct + '%</span></div>';
+      }).join('');
+    }
+  }
+
+  function renderSettings() {
+    $('#set-quit').value = state.settings.quitDate;
+    $('#set-baseline').value = state.settings.baseline;
+    $('#set-price').value = state.settings.packPrice;
+    $('#set-pack').value = state.settings.cigsPerPack;
+    $('#set-goal').value = state.settings.savingsGoal;
+    $('#set-tone').value = state.settings.praiseTone;
+    $('#set-compare').checked = !!state.settings.showCompare;
+    $('#set-research').checked = !!state.researchOptIn;
+    $('#app-version').textContent = APP_VERSION;
+  }
+
+  function renderAll() {
+    if (!state) return;
+    renderHome();
+    renderRecord();
+    renderProgress();
+    renderSettings();
+  }
+
+  function showPage(name) {
+    $$('.page').forEach(function (p) {
+      p.classList.toggle('active', p.id === 'page-' + name);
+    });
+    var noTabs = name === 'onboarding' || name === 'setup';
+    $('#tabbar').classList.toggle('hidden', noTabs);
+    $$('.tab').forEach(function (t) {
+      t.classList.toggle('active', t.getAttribute('data-page') === name);
+    });
+    if (name === 'home') renderHome();
+    if (name === 'record') renderRecord();
+    if (name === 'progress') renderProgress();
+    if (name === 'settings') renderSettings();
+    window.scrollTo(0, 0);
+  }
+
+  function openOverlay(html, full) {
+    var o = $('#overlay');
+    o.className = 'overlay' + (full ? ' full' : '');
+    o.innerHTML = html;
+    o.classList.remove('hidden');
+  }
+
+  function clearTimer() {
+    if (flow && flow.timer && flow.timer.interval) {
+      clearInterval(flow.timer.interval);
+      flow.timer.interval = null;
+    }
+  }
+
+  function clearGame() {
+    if (flow && flow.game) {
+      if (flow.game.interval) clearInterval(flow.game.interval);
+      if (flow.game.spawn) clearInterval(flow.game.spawn);
+      flow.game.interval = null;
+      flow.game.spawn = null;
+    }
+  }
+
+  function closeOverlay(silent) {
+    clearTimer();
+    clearGame();
+    if (flow) {
+      if (flow.currentRound && !flow.roundSaved) {
+        persistRound(false);
+      }
+      var ep = state.episodes.filter(function (e) { return e.id === flow.episodeId; })[0];
+      if (ep && !ep.outcome) ep.outcome = 'abandoned';
+      saveState();
+    }
+    flow = null;
+    var o = $('#overlay');
+    o.classList.add('hidden');
+    o.innerHTML = '';
+    if (!silent) renderAll();
+  }
+
+  function ensureEpisode() {
+    if (!flow || flow.episodeCreated) return;
+    var ep = {
+      id: flow.episodeId,
+      startedAt: Date.now(),
+      triageType: flow.triageType || '说不清',
+      intensityBefore: flow.intensityBefore,
+      rounds: [],
+      outcome: null
+    };
+    state.episodes.push(ep);
+    flow.episodeCreated = true;
+    saveState();
+  }
+
+  function finishEpisode(outcome) {
+    if (!flow) return;
+    var ep = state.episodes.filter(function (e) { return e.id === flow.episodeId; })[0];
+    if (ep) ep.outcome = outcome;
+    saveState();
+  }
+
+  function newFlow(mode) {
+    return {
+      mode: mode,
+      episodeId: uid(),
+      triageType: '',
+      intensityBefore: 5,
+      intensityAfter: null,
+      roundIndex: 0,
+      currentRound: null,
+      roundSaved: false,
+      episodeCreated: false,
+      timer: null,
+      game: null,
+      recordTrigger: '',
+      recordEmotion: ''
+    };
+  }
+
+  function openSheet() {
+    openOverlay(
+      '<div class="sheet">'
+      + '<div class="handle"></div>'
+      + '<h2>现在很想抽？</h2>'
+      + '<p class="tiny" style="margin-top:4px">先给自己几分钟，不用一次扛很久。</p>'
+      + '<button class="option primary" data-action="sheet-mode" data-mode="10">先撑 10 分钟<span class="tag">推荐</span></button>'
+      + '<button class="option" data-action="sheet-mode" data-mode="3">先撑 3 分钟<span class="arrow">›</span></button>'
+      + '<button class="option" data-action="sheet-mode" data-mode="task">给我一个任务<span class="arrow">›</span></button>'
+      + '<button class="option" data-action="sheet-mode" data-mode="game">玩一局（2–3 分钟）<span class="arrow">›</span></button>'
+      + '<button class="btn-text" data-action="sheet-mode" data-mode="smoke">我现在就要抽</button>'
+      + '<p class="tiny" style="text-align:center">你可以随时改变主意。</p>'
+      + '</div>'
+    );
+  }
+
+  function selectSheetMode(mode) {
+    if (mode === 'smoke') {
+      flow = newFlow('smoke');
+      openRecordForm(true);
+      return;
+    }
+    flow = newFlow(mode);
+    renderTriage();
+  }
+
+  function renderTriage() {
+    var modeTitle = flow.mode === '10' ? '先撑 10 分钟'
+      : flow.mode === '3' ? '先撑 3 分钟'
+      : flow.mode === 'task' ? '选一个任务'
+      : '玩一局';
+    var cards = TYPE_META.map(function (t) {
+      var selected = flow.triageType === t.key ? ' selected' : '';
+      return '<button class="triage-card' + selected + '" data-action="triage-type" data-type="' + escapeHtml(t.key) + '">'
+        + '<span class="triage-icon" style="background:' + t.bg + ';color:' + t.color + '">' + t.short + '</span>'
+        + '<h4>' + escapeHtml(t.key) + '</h4><p>' + escapeHtml(t.desc) + '</p></button>';
+    }).join('');
+    var levels = [['0–3', 2], ['4–6', 5], ['7–8', 8], ['9–10', 10]].map(function (l) {
+      var on = flow.intensityBefore === l[1] ? ' on' : '';
+      return '<button class="' + on.trim() + '" data-action="intensity-before" data-value="' + l[1] + '">' + l[0] + '</button>';
+    }).join('');
+
+    openOverlay(
+      '<div class="flow-page">'
+      + '<div class="flow-top"><button data-action="close-overlay">←</button><span class="tiny">' + modeTitle + '</span><button data-action="close-overlay">×</button></div>'
+      + '<div class="flow-title"><h2>现在更像哪一种？</h2><p>选一个最接近的，不用很准确。不同的渴求，用不同的办法。</p></div>'
+      + '<div class="intensity"><div class="lab">现在有多想抽？</div><div class="opts">' + levels + '</div></div>'
+      + '<div class="triage-grid">' + cards + '</div>'
+      + '<div class="flow-actions bottom">'
+      + '<button class="btn btn-primary" data-action="start-flow">继续</button>'
+      + '<button class="btn-text" data-action="skip-triage">跳过，直接开始</button>'
+      + '<button class="btn-text" data-action="smoke-now">我现在就要抽</button>'
+      + '</div></div>',
+      true
+    );
+  }
+
+  function startFlowMode() {
+    if (!flow) return;
+    if (!flow.triageType) flow.triageType = '说不清';
+    if (flow.mode === 'task') { renderTaskScreen(); return; }
+    if (flow.mode === 'game') { startGameScreen(); return; }
+    startTimer(flow.mode === '10' ? 600 : 180, 'delay', null);
+  }
+
+  function startTimer(seconds, mode, task) {
+    clearTimer();
+    ensureEpisode();
+    flow.currentRound = null;
+    flow.roundSaved = false;
+    flow.timer = { total: seconds, remaining: seconds, mode: mode, task: task || null, startedAt: Date.now(), interval: null };
+    renderTimerScreen();
+    flow.timer.interval = setInterval(function () {
+      if (!flow || !flow.timer) return;
+      flow.timer.remaining = Math.max(0, flow.timer.remaining - 1);
+      updateTimerHud();
+      if (flow.timer.remaining <= 0) {
+        clearInterval(flow.timer.interval);
+        flow.timer.interval = null;
+        updateTimerHud();
+      }
+    }, 1000);
+  }
+
+  function renderTimerScreen() {
+    var t = flow.timer;
+    var title = t.mode === 'task' ? ('任务：' + (t.task ? t.task.label : '转移注意力')) : '冲动冲浪';
+    var sub = t.mode === 'task' ? '慢慢做，不用标准。' : '不用赶走它，只要观察它。';
+    openOverlay(
+      '<div class="flow-page timer-page">'
+      + '<div class="flow-top"><button data-action="close-overlay">←</button><span class="tiny">' + escapeHtml(title) + '</span><button data-action="close-overlay">×</button></div>'
+      + '<div class="timer-wrap"><div class="timer-time" id="timer-time">' + fmtClock(t.remaining) + '</div><div class="timer-label">' + (t.mode === 'task' ? '先做这一件小事' : '先观察，不用赶走它') + '</div></div>'
+      + '<h2>' + escapeHtml(sub) + '</h2>'
+      + '<p class="timer-guide">冲动像波浪：会上升、达到峰值、然后下降。你不需要服从它。</p>'
+      + '<div class="timer-track"><i id="timer-bar"></i></div>'
+      + '<div class="flow-actions bottom">'
+      + '<button class="btn btn-primary" id="timer-done" data-action="timer-done">我撑过去了</button>'
+      + '<button class="btn btn-ghost" data-action="timer-early">提前结束</button>'
+      + '<button class="btn-text" data-action="smoke-now">我现在就要抽</button>'
+      + '</div></div>',
+      true
+    );
+    updateTimerHud();
+  }
+
+  function fmtClock(sec) {
+    var m = Math.floor(sec / 60), s = sec % 60;
+    return pad(m) + ':' + pad(s);
+  }
+
+  function updateTimerHud() {
+    if (!flow || !flow.timer) return;
+    var t = flow.timer;
+    var timeEl = $('#timer-time');
+    var barEl = $('#timer-bar');
+    if (timeEl) timeEl.textContent = fmtClock(t.remaining);
+    if (barEl) barEl.style.width = Math.max(0, Math.min(100, t.remaining / t.total * 100)) + '%';
+    var done = $('#timer-done');
+    if (done) done.textContent = t.remaining > 0 ? '提前结束并记录' : '我撑过去了';
+  }
+
+  function finishTimer(completed) {
+    if (!flow || !flow.timer) return;
+    var t = flow.timer;
+    var elapsed = Math.max(1, t.total - t.remaining);
+    var duration = completed ? t.total : elapsed;
+    flow.currentRound = {
+      durationSec: duration,
+      completed: !!completed,
+      startedAt: t.startedAt,
+      intensityBefore: flow.intensityBefore,
+      task: t.task,
+      mode: t.mode
+    };
+    clearTimer();
+    showDoneScreen();
+  }
+
+  function renderTaskScreen() {
+    var picks = TASK_POOL.slice().sort(function () { return Math.random() - 0.5; }).slice(0, 3);
+    var cards = picks.map(function (t) {
+      return '<button class="task" data-action="task-select" data-task-id="' + t.id + '" data-task-type="' + escapeHtml(t.type) + '" data-task-label="' + escapeHtml(t.label) + '">'
+        + '<span class="task-icon">' + escapeHtml(t.type.slice(0, 1)) + '</span>'
+        + '<span><h4>' + escapeHtml(t.label) + '</h4><p>' + escapeHtml(t.desc) + '</p></span>'
+        + '<span class="time">3 分钟</span></button>';
+    }).join('');
+    openOverlay(
+      '<div class="flow-page">'
+      + '<div class="flow-top"><button data-action="close-overlay">←</button><span class="tiny">选一个任务</span><button data-action="close-overlay">×</button></div>'
+      + '<div class="flow-title"><h2>选一件小事，撑 3 分钟</h2><p>不用做得很标准。动起来、换个场景，就算成功。</p></div>'
+      + '<div class="task-list">' + cards + '</div>'
+      + '<div class="flow-actions bottom"><button class="btn btn-ghost" data-action="task-reroll">换一组</button><button class="btn-text" data-action="smoke-now">我现在就要抽</button></div>'
+      + '</div>',
+      true
+    );
+  }
+
+  function startGameScreen() {
+    ensureEpisode();
+    flow.game = { score: 0, remaining: 120, interval: null, spawn: null };
+    openOverlay(
+      '<div class="flow-page">'
+      + '<div class="flow-top"><button data-action="close-overlay">←</button><span class="tiny">玩一局</span><button data-action="close-overlay">×</button></div>'
+      + '<div class="flow-title"><h2>玩一局，撑 2 分钟</h2><p>点掉出现的圆点，让注意力有个去处。游戏只是延迟工具。</p></div>'
+      + '<div class="game-area" id="game-area"></div>'
+      + '<div class="game-hud"><span>得分 <b id="game-score">0</b></span><span>剩余 <b id="game-time">02:00</b></span></div>'
+      + '<div class="flow-actions bottom"><button class="btn btn-ghost" data-action="game-skip">跳过游戏</button><button class="btn-text" data-action="smoke-now">我现在就要抽</button></div>'
+      + '</div>',
+      true
+    );
+    flow.game.interval = setInterval(function () {
+      if (!flow || !flow.game) return;
+      flow.game.remaining = Math.max(0, flow.game.remaining - 1);
+      var timeEl = $('#game-time');
+      if (timeEl) timeEl.textContent = fmtClock(flow.game.remaining);
+      if (flow.game.remaining <= 0) endGame();
+    }, 1000);
+    flow.game.spawn = setInterval(spawnBubble, 700);
+  }
+
+  function spawnBubble() {
+    if (!flow || !flow.game) return;
+    var area = $('#game-area');
+    if (!area) return;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'bubble';
+    b.textContent = '●';
+    b.style.left = (Math.random() * 78) + '%';
+    b.style.top = (Math.random() * 78) + '%';
+    b.addEventListener('click', function () {
+      if (!flow || !flow.game) return;
+      flow.game.score++;
+      var scoreEl = $('#game-score');
+      if (scoreEl) scoreEl.textContent = flow.game.score;
+      b.remove();
+    });
+    area.appendChild(b);
+    setTimeout(function () { if (b.parentNode) b.remove(); }, 1500);
+  }
+
+  function endGame() {
+    if (!flow || !flow.game) return;
+    clearGame();
+    var elapsed = Math.max(1, 120 - flow.game.remaining);
+    flow.currentRound = {
+      durationSec: elapsed,
+      completed: flow.game.remaining <= 0,
+      startedAt: Date.now() - elapsed * 1000,
+      intensityBefore: flow.intensityBefore,
+      task: { id: 'bubble', type: '游戏', label: '专注小游戏' },
+      mode: 'game'
+    };
+    showDoneScreen();
+  }
+
+  function getLastCompletedRound() {
+    return state.rounds.filter(function (r) { return r.completed; })
+      .sort(function (a, b) { return b.endedAt - a.endedAt; })[0] || null;
+  }
+
+  function comparisonText(sec) {
+    if (!state.settings.showCompare) return '';
+    var last = getLastCompletedRound();
+    if (!last) return '这是你的第一个延迟基线。';
+    var diff = sec - last.durationSec;
+    if (diff > 0) return '本次 ' + fmtMin(sec) + ' · 上次 ' + fmtMin(last.durationSec) + ' · +' + fmtMin(diff);
+    if (diff === 0) return '本次 ' + fmtMin(sec) + ' · 和上次一样稳';
+    return '本次 ' + fmtMin(sec) + ' · 上次 ' + fmtMin(last.durationSec) + '；这次难度不同，先肯定这次。';
+  }
+
+  function praiseText(before, after, sec) {
+    var mins = fmtMin(sec);
+    if (state.settings.praiseTone === 'lowkey') {
+      return '撑了 ' + mins + '，做得不错。下次它再来，你已经有办法了。';
+    }
+    if (after != null && after <= 3) {
+      return '你从 ' + before + ' 分熬到 ' + after + ' 分，用了 ' + mins + '。呼吸 + 起身走动对你有效——下次渴求再来，你已经有办法了。';
+    }
+    if (before >= 7) {
+      return '起始 ' + before + ' 分，你还是撑了 ' + mins + '。这是一次高难度胜利。下次高渴求时，先想起这次。';
+    }
+    return '你撑了 ' + mins + '。先肯定这次做到的事——下次它再来，你已经有办法了。';
+  }
+
+  function showDoneScreen() {
+    if (!flow || !flow.currentRound) return;
+    flow.intensityAfter = null;
+    renderDoneScreen();
+  }
+
+  function renderDoneScreen() {
+    var r = flow.currentRound;
+    var comp = comparisonText(r.durationSec);
+    var praise = praiseText(r.intensityBefore, flow.intensityAfter, r.durationSec);
+    var scale = '';
+    for (var n = 0; n <= 10; n++) {
+      scale += '<button class="' + (flow.intensityAfter === n ? 'active' : '') + '" data-action="done-rating" data-value="' + n + '">' + n + '</button>';
+    }
+    var canAgain = flow.roundIndex < 2;
+    openOverlay(
+      '<div class="flow-page done-page">'
+      + '<div class="flow-top"><button data-action="close-overlay">←</button><span class="tiny">延迟结束</span><button data-action="close-overlay">×</button></div>'
+      + '<div class="done-check">✓</div>'
+      + '<h2>你撑了 ' + fmtMin(r.durationSec) + '</h2>'
+      + (comp ? '<div class="compare-pill">' + escapeHtml(comp) + '</div>' : '')
+      + '<div class="praise">' + escapeHtml(praise) + '</div>'
+      + '<div class="scale-label">现在还想抽吗？0–10</div>'
+      + '<div class="scale">' + scale + '</div>'
+      + '<div class="flow-actions bottom">'
+      + (canAgain ? '<button class="btn btn-primary" data-action="done-again">还想抽，再撑一轮</button>' : '<p class="tiny">已经 3 轮了。你可以记录一支，或联系支持者。</p>')
+      + '<button class="btn btn-ghost" data-action="done-resisted">现在好多了</button>'
+      + '<button class="btn-text" data-action="done-smoke">我现在就要抽</button>'
+      + '</div></div>',
+      true
+    );
+  }
+
+  function persistRound(completed) {
+    if (!flow || !flow.currentRound || flow.roundSaved) return null;
+    var cr = flow.currentRound;
+    var r = {
+      id: uid(),
+      episodeId: flow.episodeId,
+      startedAt: cr.startedAt || Date.now(),
+      endedAt: Date.now(),
+      durationSec: Math.max(1, Math.round(cr.durationSec)),
+      intensityBefore: cr.intensityBefore,
+      intensityAfter: flow.intensityAfter,
+      taskId: cr.task ? cr.task.id : null,
+      taskType: cr.task ? cr.task.type : '延迟',
+      taskLabel: cr.task ? cr.task.label : '延迟',
+      completed: !!completed,
+      roundIndex: flow.roundIndex
+    };
+    state.rounds.push(r);
+    var ep = state.episodes.filter(function (e) { return e.id === flow.episodeId; })[0];
+    if (ep) ep.rounds.push(r.id);
+    flow.roundSaved = true;
+    saveState();
+    return r;
+  }
+
+  function openRecordForm(fromCraving) {
+    if (!fromCraving) {
+      flow = null;
+      recordDraft = { trigger: '', emotion: '' };
+    }
+    var trigger = flow ? flow.recordTrigger : recordDraft.trigger;
+    var emotion = flow ? flow.recordEmotion : recordDraft.emotion;
+    var triggers = ['饭后', '压力', '社交', '无聊', '喝酒', '其他'];
+    var emotions = ['烦', '累', '空', '开心', '没感觉'];
+    var tHTML = triggers.map(function (x) {
+      return '<button class="' + (trigger === x ? 'active' : '') + '" data-action="record-trigger" data-value="' + x + '">' + x + '</button>';
+    }).join('');
+    var eHTML = emotions.map(function (x) {
+      return '<button class="' + (emotion === x ? 'active' : '') + '" data-action="record-emotion" data-value="' + x + '">' + x + '</button>';
+    }).join('');
+    openOverlay(
+      '<div class="flow-page">'
+      + '<div class="flow-top"><button data-action="close-overlay">←</button><span class="tiny">记录</span><button data-action="close-overlay">×</button></div>'
+      + '<div class="flow-title"><h2>记录一支，没关系</h2><p>这不是失败，是数据。记录越准，下一次的建议越有用。</p>'
+      + (fromCraving ? '<p class="tiny" style="margin-top:6px">如果只是很想抽、还没抽，可以返回继续延迟。</p>' : '')
+      + '</div>'
+      + '<div class="section-label">当时是什么触发的？</div><div class="record-chips">' + tHTML + '</div>'
+      + '<div class="section-label">当时的情绪</div><div class="record-chips">' + eHTML + '</div>'
+      + '<div class="section-label">下一支不抽，可以这样做</div>'
+      + '<div class="if-then">如果饭后想抽，我就立刻刷牙，并出门走 5 分钟。</div>'
+      + '<div class="flow-actions bottom">'
+      + '<button class="btn btn-primary" data-action="record-save">保存并继续</button>'
+      + '<button class="btn-text" data-action="record-skip">跳过详情，只记一支</button>'
+      + '</div></div>',
+      true
+    );
+  }
+
+  function saveCigarette(trigger, emotion) {
+    state.cigarettes.push({ id: uid(), ts: Date.now(), trigger: trigger || '', emotion: emotion || '' });
+    if (flow) finishEpisode('smoked');
+    saveState();
+    closeOverlay(true);
+    toast('已记录一支，继续计划。');
+    renderAll();
+  }
+
+  function readSettings() {
+    var quit = $('#set-quit').value || todayISO();
+    return {
+      quitDate: quit,
+      baseline: Math.max(0, Number($('#set-baseline').value) || 0),
+      packPrice: Math.max(0, Number($('#set-price').value) || 0),
+      cigsPerPack: Math.max(1, Number($('#set-pack').value) || 20),
+      savingsGoal: Math.max(0, Number($('#set-goal').value) || 0),
+      praiseTone: $('#set-tone').value,
+      showCompare: $('#set-compare').checked
+    };
+  }
+
+  function exportData() {
+    var data = JSON.stringify(state, null, 2);
+    var blob = new Blob([data], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'quit-smoking-data-' + todayISO() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    toast('已导出 JSON。');
+  }
+
+  function onboardNext() {
+    var local = $('#consent-local').checked;
+    if (!local) { toast('请先同意在本机保存数据。'); return; }
+    state.consentLocal = true;
+    state.researchOptIn = $('#consent-research').checked;
+    saveState();
+    $('#setup-quit').value = state.settings.quitDate;
+    $('#setup-baseline').value = state.settings.baseline;
+    $('#setup-price').value = state.settings.packPrice;
+    $('#setup-pack').value = state.settings.cigsPerPack;
+    $('#setup-goal').value = state.settings.savingsGoal;
+    showPage('setup');
+  }
+
+  function setupFinish() {
+    state.settings.quitDate = $('#setup-quit').value || todayISO();
+    state.settings.baseline = Math.max(0, Number($('#setup-baseline').value) || 20);
+    state.settings.packPrice = Math.max(0, Number($('#setup-price').value) || 0);
+    state.settings.cigsPerPack = Math.max(1, Number($('#setup-pack').value) || 20);
+    state.settings.savingsGoal = Math.max(0, Number($('#setup-goal').value) || 0);
+    state.onboarded = true;
+    saveState();
+    showPage('home');
+  }
+
+  function handleAction(action, el) {
+    switch (action) {
+      case 'tab':
+        showPage(el.getAttribute('data-page'));
+        break;
+      case 'open-craving':
+        openSheet();
+        break;
+      case 'sheet-mode':
+        selectSheetMode(el.getAttribute('data-mode'));
+        break;
+      case 'triage-type':
+        if (flow) { flow.triageType = el.getAttribute('data-type'); renderTriage(); }
+        break;
+      case 'intensity-before':
+        if (flow) { flow.intensityBefore = Number(el.getAttribute('data-value')) || 5; renderTriage(); }
+        break;
+      case 'start-flow':
+        startFlowMode();
+        break;
+      case 'skip-triage':
+        if (flow) { flow.triageType = flow.triageType || '说不清'; startFlowMode(); }
+        break;
+      case 'task-select':
+        if (flow) {
+          startTimer(180, 'task', {
+            id: el.getAttribute('data-task-id'),
+            type: el.getAttribute('data-task-type'),
+            label: el.getAttribute('data-task-label')
+          });
+        }
+        break;
+      case 'task-reroll':
+        renderTaskScreen();
+        break;
+      case 'timer-done':
+        finishTimer(flow && flow.timer && flow.timer.remaining <= 0);
+        break;
+      case 'timer-early':
+        finishTimer(false);
+        break;
+      case 'game-skip':
+        if (flow && flow.game) {
+          flow.game.remaining = Math.max(1, flow.game.remaining);
+          endGame();
+        }
+        break;
+      case 'done-rating':
+        if (flow) { flow.intensityAfter = Number(el.getAttribute('data-value')); renderDoneScreen(); }
+        break;
+      case 'done-again':
+        if (flow) {
+          persistRound(true);
+          if (flow.roundIndex >= 2) { toast('已经 3 轮了，记录一支或联系支持者。'); return; }
+          flow.roundIndex++;
+          flow.intensityBefore = flow.intensityAfter == null ? flow.intensityBefore : flow.intensityAfter;
+          flow.roundSaved = false;
+          flow.currentRound = null;
+          startTimer(180, 'delay', null);
+        }
+        break;
+      case 'done-resisted':
+        if (flow) {
+          persistRound(true);
+          finishEpisode('resisted');
+          closeOverlay(true);
+          toast('记下了：你熬过一波。');
+          renderAll();
+        }
+        break;
+      case 'done-smoke':
+        if (flow) {
+          persistRound(true);
+          openRecordForm(true);
+        }
+        break;
+      case 'smoke-now':
+        if (!flow) flow = newFlow('smoke');
+        clearTimer();
+        clearGame();
+        openRecordForm(true);
+        break;
+      case 'record-trigger':
+        if (flow) { flow.recordTrigger = el.getAttribute('data-value'); } else { recordDraft.trigger = el.getAttribute('data-value'); }
+        el.parentNode.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+        el.classList.add('active');
+        break;
+      case 'record-emotion':
+        if (flow) { flow.recordEmotion = el.getAttribute('data-value'); } else { recordDraft.emotion = el.getAttribute('data-value'); }
+        el.parentNode.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+        el.classList.add('active');
+        break;
+      case 'record-save':
+        saveCigarette(flow ? flow.recordTrigger : recordDraft.trigger, flow ? flow.recordEmotion : recordDraft.emotion);
+        break;
+      case 'record-skip':
+        saveCigarette('', '');
+        break;
+      case 'open-record':
+        openRecordForm(false);
+        break;
+      case 'close-overlay':
+        closeOverlay();
+        break;
+      case 'onboarding-next':
+        onboardNext();
+        break;
+      case 'setup-finish':
+        setupFinish();
+        break;
+      case 'save-settings':
+        state.settings = readSettings();
+        state.researchOptIn = $('#set-research').checked;
+        saveState();
+        toast('设置已保存。');
+        renderAll();
+        break;
+      case 'export':
+        exportData();
+        break;
+      case 'reset':
+        if (confirm('确定清除本地数据？建议先导出备份。')) {
+          localStorage.removeItem(STORAGE_KEY);
+          state = defaultState();
+          flow = null;
+          closeOverlay(true);
+          showPage('onboarding');
+          renderAll();
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-action]') : null;
+    if (!el) return;
+    handleAction(el.getAttribute('data-action'), el);
+  });
+
+  function registerSW() {
+    if (!('serviceWorker' in navigator)) return;
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') return;
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(function () {});
+    });
+  }
+
+  function init() {
+    state = loadState();
+    if (!state) state = defaultState();
+    if (!state.onboarded) {
+      showPage('onboarding');
+    } else {
+      showPage('home');
+    }
+    renderAll();
+    registerSW();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
