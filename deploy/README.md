@@ -82,6 +82,32 @@ location /quit-smoking/ {
 - 这种方式只是“部署静态文件”，**不等于服务器能拉取 quit-smoking 私有仓库**。如果想让服务器 `git pull` quit-smoking，仍然需要单独的 Deploy Key。
 - 每次更新：重新上传 zip 解压覆盖，或 `git pull` + 软链接/复制。
 
+## 如果仓库改为 public（无需 Deploy Key）
+
+公开仓库的读操作不需要认证，服务器可以直接 HTTPS clone：
+
+```bash
+sudo rm -rf /var/www/quit-smoking-src
+sudo git clone https://github.com/lion2018/quit-smoking.git /var/www/quit-smoking-src
+
+sudo mkdir -p /var/www/quit-smoking
+sudo rsync -a --delete /var/www/quit-smoking-src/site/quit-smoking/ /var/www/quit-smoking/
+```
+
+更新：
+
+```bash
+sudo git -C /var/www/quit-smoking-src pull --ff-only
+sudo rsync -a --delete /var/www/quit-smoking-src/site/quit-smoking/ /var/www/quit-smoking/
+```
+
+注意：
+
+- public 只免 **读** 认证；从服务器 `push` 仍然需要 key/token。
+- GitHub HTTPS 在国内可能慢或中断；失败时改用 zip 上传或镜像。
+- 公开前检查 docs 里的本机路径、SSH 公钥、个人健康描述；不要提交私钥、token、真实服务器密码。
+- 仓库公开后，原来的 shangcheng Deploy Key 不用动；quit-smoking 不再需要新 key。
+
 ## 从 GitHub 拉取（私有仓库，部署密钥）
 
 仓库是私有的，服务器直接 `git clone` 需要认证。推荐给服务器生成一把 **只读 Deploy Key**，添加到 GitHub 仓库的 Deploy keys，而不是用账号密码或 PAT。
