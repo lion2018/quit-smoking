@@ -64,17 +64,57 @@ sudo ln -s /var/www/quit-smoking-src/site/quit-smoking /var/www/shangcheng/quit-
 - 符号链接目标对 Nginx 运行用户可读。
 - 更新时只需在源码目录 `git pull`，软链接自动生效。
 
-### 如果 shangcheng 是 SPA / 有 catch-all 路由
+### 如果 shangcheng 是 Next.js / SPA（当前服务器就是）
 
-如果访问 `/quit-smoking/` 被 shangcheng 的前端路由接管，在 Nginx 里加一条更具体的静态 location：
+症状：
+
+- `/quit-smoking/` 返回 `308` 到 `/quit-smoking`
+- 然后返回 Next.js 的 `404`
+- 响应头里有 `X-Powered-By: Next.js`
+
+原因：Nginx 把所有请求 `proxy_pass` 给 Next.js，静态目录没有被 Nginx 直接服务。
+
+#### 方案 A：Nginx 直接服务静态文件（推荐）
+
+在现有 `server { }` 里加（和 `proxy_pass` 的 location 同级）：
 
 ```nginx
-location /quit-smoking/ {
+location = /quit-smoking {
+    return 301 /quit-smoking/;
+}
+
+location ^~ /quit-smoking/ {
+    root /opt/shangcheng;   # quit-smoking 文件夹的父目录
+    index index.html;
     try_files $uri $uri/ /quit-smoking/index.html;
 }
 ```
 
-如果在 `/shangcheng/quit-smoking/` 下，路径同步调整。
+`^~` 很重要：它让这个前缀匹配优先于 Next.js 的 `proxy_pass` / 正则 location。
+
+路径对应关系：
+
+- 文件在 `/opt/shangcheng/quit-smoking/` → `root /opt/shangcheng;`
+- 文件在 `/opt/shangcheng/public/quit-smoking/` → `root /opt/shangcheng/public;`
+- 文件在 `/var/www/quit-smoking/` → `root /var/www;`
+- 文件在 `/var/www/shangcheng/quit-smoking/` → `root /var/www/shangcheng;`
+
+先确认文件实际存在：
+
+```bash
+ls -l /opt/shangcheng/quit-smoking/index.html
+# 或
+ls -l /opt/shangcheng/public/quit-smoking/index.html
+```
+
+#### 方案 B：放进 Next.js 的 `public/`
+
+```bash
+cp -r /path/to/site/quit-smoking/* /path/to/shangcheng/public/quit-smoking/
+```
+
+访问 `http://<IP>/quit-smoking/index.html` 可以打开。  
+但想要干净的 `/quit-smoking/`，仍需要在 Next.js `next.config.js` 加 rewrite，或使用方案 A。优先方案 A。
 
 ### 注意
 
