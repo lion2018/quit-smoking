@@ -440,6 +440,38 @@ sudo systemctl reload nginx
 - `try_files` 让子路径刷新不 404。
 - `index.html` 不强缓存，静态资源可长缓存。
 
+## Nginx 权限：`ps` 显示 root 是正常的
+
+`ps -o user= -C nginx | head -1` 通常取到 **master** 进程，master 以 root 运行；真正读取文件的是 worker，通常是 `www-data` 或 `nginx`。
+
+查看所有 Nginx 进程和用户：
+
+```bash
+ps -eo user,pid,args | grep '[n]ginx'
+```
+
+静态文件不需要 chown 给 root。推荐直接让所有用户可读：
+
+```bash
+sudo chmod -R a+rX /var/www/quit-smoking
+```
+
+或者 chown 给 worker 用户：
+
+```bash
+sudo chown -R www-data:www-data /var/www/quit-smoking   # Ubuntu
+# sudo chown -R nginx:nginx /var/www/quit-smoking       # CentOS
+```
+
+403 排查：
+
+```bash
+namei -l /var/www/quit-smoking/index.html
+sudo tail -n 30 /var/log/nginx/error.log
+```
+
+`namei` 会显示每一级目录的权限；如果 `/var/www` 对 others 没有 `x`，Nginx 也进不去。
+
 ## Apache（备选）
 
 ```apache
