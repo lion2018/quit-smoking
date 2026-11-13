@@ -28,4 +28,6 @@ Documentation-only phase (as of 2026-11-13). Platform changed from WeChat mini-p
 - 数据研究：群体效果统计需要事件采集 + 同意 + 后端 + 分析 + 管理后台；MVP 先做本地事件日志。观察数据不能直接宣称因果，见开发文档第 22 节。
 - 部署：目标子目录 `/quit-smoking/`，所有资源用相对路径，不碰根 `location /`；配置见 `deploy/README.md` 与 `deploy/quit-smoking.nginx.conf`。Service Worker 需要 HTTPS。
 - MVP 代码：`site/quit-smoking/index.html`（单文件，原生 JS + localStorage）；PWA 文件在同目录；部署包 `deploy/quit-smoking.zip`。修改后重新压缩 zip。
+- GitHub：`https://github.com/lion2018/quit-smoking.git`，分支 `main`，远端 `git@github.com:lion2018/quit-smoking.git`。本机 Git 在 `C:\Users\Administrator\Tools\MinGit\cmd\git.exe`。
+- 推送使用 SSH key（`~/.ssh/id_ed25519_github`，config 走 `ssh.github.com:443`）；公钥需用户添加到 GitHub。绝不提交私钥、token 或服务器密码。
 - 本机无法直连 Microsoft 下载域名与 GitHub；安装工具/依赖时优先使用 Gitee、清华 TUNA、华为云镜像、npmmirror，并校验哈希。详见 `docs/开发文档.md` 第 14 章。
