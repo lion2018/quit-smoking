@@ -72,6 +72,8 @@ chmod 600 ~/.ssh/config ~/.ssh/quit_smoking_deploy
 
 如果 `~/.ssh/config` 里已经有 `Host github.com`，请编辑原配置，不要重复追加。
 
+> 追加 config 时，结尾的 `EOF` 必须顶格（行首不能有空格），否则 heredoc 不会结束。建议直接用 `nano ~/.ssh/config` 编辑。
+
 ### 4. 测试
 
 ```bash
@@ -133,6 +135,9 @@ ssh -G github.com | grep -Ei 'hostname|port|identityfile|user'
 判断：
 
 - `ssh -T` 显示 `Hi lion2018/quit-smoking!`：密钥已被该仓库识别；仍报 not found 时，检查 clone 的仓库地址/大小写，或密钥是否加到了另一个仓库。
+- `ssh -T` 显示 `Hi lion2018/shangcheng!`：密钥绑在 `shangcheng` 仓库，不是 `quit-smoking`。Deploy Key 是仓库级的，不能同时给两个仓库用：
+  - 去 `https://github.com/lion2018/shangcheng/settings/keys` 删除该 key，再添加到 `https://github.com/lion2018/quit-smoking/settings/keys`；或
+  - 为 `quit-smoking` 新生成一把 key，并在 SSH config 里用 Host 别名或切换 `IdentityFile`。
 - `ssh -T` 显示 `Hi 其他用户名!`：服务器用错了密钥（可能是账号级 key），需要把 `quit_smoking_deploy.pub` 加到 `lion2018/quit-smoking` 的 Deploy keys。
 - `Permission denied (publickey)`：密钥没被使用；看 `ssh -G` 的 `identityfile` 是否指向 `/root/.ssh/quit_smoking_deploy`。
 - `ssh -G` 的 `hostname` 不是 `ssh.github.com` 或 `port` 不是 `443`：`~/.ssh/config` 没生效，检查是否有更早的 `Host github.com` 配置覆盖。
