@@ -132,6 +132,26 @@ location ^~ /quit-smoking/ {
 - `location / { proxy_pass http://127.0.0.1:3000; }`
 - 在同一个 `server { }` 里加上面的 `/quit-smoking/` location，然后 `nginx -t && systemctl reload nginx`。
 
+### manifest.webmanifest 的 MIME
+
+如果 `curl -I .../manifest.webmanifest` 返回 `application/octet-stream`，部分浏览器会忽略 manifest，影响 PWA 安装。加一个精确 location（优先级高于 `^~` 前缀）：
+
+```nginx
+location = /quit-smoking/manifest.webmanifest {
+    root /var/www;
+    default_type application/manifest+json;
+    add_header Cache-Control "no-cache";
+}
+```
+
+然后 `nginx -t && systemctl reload nginx`，再检查：
+
+```bash
+curl -I http://<IP>/quit-smoking/manifest.webmanifest
+```
+
+应为 `Content-Type: application/manifest+json`。
+
 #### 方案 B：放进 Next.js 的 `public/`
 
 ```bash
